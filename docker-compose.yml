@@ -20,5 +20,19 @@ services:
       retries: 12
       start_period: 30s
 
+  sql-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: legacy-sql-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./sql:/sql:ro,z
+      - ./scripts/init_sql.sh:/init_sql.sh:ro,z
+    entrypoint: ["/bin/bash", "/init_sql.sh"]
+    restart: "no"
+
 volumes:
   sqlserver_data:
