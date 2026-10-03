@@ -139,3 +139,18 @@ BEGIN
     );
 END
 GO
+
+-- Bảng báo cáo: top sản phẩm theo từng danh mục
+IF OBJECT_ID(N'dbo.top_products_by_category', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.top_products_by_category (
+        category          NVARCHAR(50)  NOT NULL,
+        rank_in_category  INT           NOT NULL,
+        product_id        INT           NOT NULL,
+        product_name      NVARCHAR(150) NOT NULL,
+        revenue           DECIMAL(18,2) NOT NULL,
+        refreshed_at      DATETIME2(0)  NOT NULL CONSTRAINT DF_top_products_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_top_products_by_category PRIMARY KEY (category, rank_in_category)
+    );
+END
+GO

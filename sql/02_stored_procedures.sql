@@ -213,6 +213,51 @@ BEGIN
 END
 GO
 
+-- Top 3 sản phẩm theo doanh thu của từng danh mục, viết kiểu bảng tạm nhiều tầng
+CREATE OR ALTER PROCEDURE dbo.sp_refresh_top_products_by_category
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Tầng 1: doanh thu của từng sản phẩm, kèm danh mục
+    SELECT p.product_id,
+           p.category,
+           p.product_name,
+           SUM(oi.quantity * oi.unit_price) AS revenue
+    INTO #product_revenue
+    FROM dbo.order_items oi
+    JOIN dbo.orders   o ON o.order_id   = oi.order_id
+    JOIN dbo.products p ON p.product_id = oi.product_id
+    WHERE o.status IN ('PAID', 'SHIPPED', 'COMPLETED')
+    GROUP BY p.product_id, p.category, p.product_name;
+
+    -- Tầng 2: lấy 3 sản phẩm cao nhất mỗi danh mục (TOP + CROSS APPLY)
+    SELECT c.category, t.product_id, t.product_name, t.revenue
+    INTO #top3
+    FROM (SELECT DISTINCT category FROM #product_revenue) AS c
+    CROSS APPLY (
+        SELECT TOP (3) pr.product_id, pr.product_name, pr.revenue
+        FROM #product_revenue pr
+        WHERE pr.category = c.category
+        ORDER BY pr.revenue DESC
+    ) AS t;
+
+    -- Tầng 3: đánh số thứ hạng trong danh mục rồi nạp vào bảng báo cáo
+    TRUNCATE TABLE dbo.top_products_by_category;
+
+    INSERT INTO dbo.top_products_by_category (category, rank_in_category, product_id, product_name, revenue)
+    SELECT category,
+           ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC),
+           product_id,
+           product_name,
+           revenue
+    FROM #top3;
+
+    DROP TABLE #product_revenue;
+    DROP TABLE #top3;
+END
+GO
+
 -- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
 CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
 AS
@@ -227,6 +272,7 @@ BEGIN
     EXEC dbo.sp_refresh_product_sales;
     EXEC dbo.sp_refresh_category_monthly_revenue;
     EXEC dbo.sp_refresh_cumulative_revenue;
+    EXEC dbo.sp_refresh_top_products_by_category;
 
     PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
 END
