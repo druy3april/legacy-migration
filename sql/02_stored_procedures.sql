@@ -57,3 +57,49 @@ BEGIN
     DROP TABLE #ltv_all;
 END
 GO
+
+-- Phân khúc khách hàng, viết kiểu CURSOR duyệt từng dòng
+CREATE OR ALTER PROCEDURE dbo.sp_refresh_customer_segments
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @as_of DATE = '2026-09-30';  -- ngày chốt số liệu, cố định để kết quả không đổi theo ngày chạy
+    DECLARE @customer_id INT;
+    DECLARE @order_count INT;
+    DECLARE @total_spent DECIMAL(18,2);
+    DECLARE @last_order  DATE;
+    DECLARE @segment     VARCHAR(20);
+
+    TRUNCATE TABLE dbo.customer_segments;
+
+    DECLARE cur_customers CURSOR LOCAL FAST_FORWARD FOR
+        SELECT customer_id, order_count, total_spent, last_order_date
+        FROM dbo.customer_ltv;
+
+    OPEN cur_customers;
+    FETCH NEXT FROM cur_customers INTO @customer_id, @order_count, @total_spent, @last_order;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF @order_count = 0
+            SET @segment = 'INACTIVE';
+        ELSE IF DATEDIFF(DAY, @last_order, @as_of) > 60
+            SET @segment = 'DORMANT';
+        ELSE IF @total_spent >= 250000000
+            SET @segment = 'VIP';
+        ELSE IF @total_spent >= 100000000
+            SET @segment = 'REGULAR';
+        ELSE
+            SET @segment = 'CASUAL';
+
+        INSERT INTO dbo.customer_segments (customer_id, segment)
+        VALUES (@customer_id, @segment);
+
+        FETCH NEXT FROM cur_customers INTO @customer_id, @order_count, @total_spent, @last_order;
+    END
+
+    CLOSE cur_customers;
+    DEALLOCATE cur_customers;
+END
+GO
