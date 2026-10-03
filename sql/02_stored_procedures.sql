@@ -103,3 +103,19 @@ BEGIN
     DEALLOCATE cur_customers;
 END
 GO
+
+-- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
+CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @started DATETIME2(0) = SYSUTCDATETIME();
+
+    EXEC dbo.sp_refresh_daily_revenue;
+    EXEC dbo.sp_refresh_customer_ltv;
+    EXEC dbo.sp_refresh_customer_segments;
+
+    PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
+END
+GO

@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql
+.PHONY: help env up down reset ps logs sql data batch check
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -31,3 +31,12 @@ down:
 
 reset:
 	$(COMPOSE) down -v
+
+data:
+	python scripts/generate_data.py
+
+batch:
+	$(COMPOSE) exec -T sqlserver bash -c '$(SQLCMD) -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -d LegacyRetail -b -Q "EXEC dbo.sp_run_nightly_batch"'
+
+check:
+	$(COMPOSE) exec -T sqlserver bash -c '$(SQLCMD) -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -d LegacyRetail -W' < scripts/check.sql
