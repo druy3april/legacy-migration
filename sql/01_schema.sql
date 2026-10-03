@@ -72,3 +72,43 @@ BEGIN
     CREATE INDEX IX_items_order_id ON dbo.order_items (order_id);
 END
 GO
+
+-- Bảng báo cáo: doanh thu theo ngày
+IF OBJECT_ID(N'dbo.daily_revenue', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.daily_revenue (
+        revenue_date   DATE          NOT NULL,
+        order_count    INT           NOT NULL,
+        gross_revenue  DECIMAL(18,2) NOT NULL,
+        refreshed_at   DATETIME2(0)  NOT NULL CONSTRAINT DF_daily_revenue_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_daily_revenue PRIMARY KEY (revenue_date)
+    );
+END
+GO
+
+-- Bảng báo cáo: giá trị vòng đời của khách hàng (LTV)
+IF OBJECT_ID(N'dbo.customer_ltv', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.customer_ltv (
+        customer_id       INT           NOT NULL,
+        order_count       INT           NOT NULL,
+        total_spent       DECIMAL(18,2) NOT NULL,
+        first_order_date  DATE          NULL,
+        last_order_date   DATE          NULL,
+        refreshed_at      DATETIME2(0)  NOT NULL CONSTRAINT DF_customer_ltv_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_customer_ltv PRIMARY KEY (customer_id)
+    );
+END
+GO
+
+-- Bảng báo cáo: phân khúc khách hàng
+IF OBJECT_ID(N'dbo.customer_segments', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.customer_segments (
+        customer_id   INT          NOT NULL,
+        segment       VARCHAR(20)  NOT NULL,
+        refreshed_at  DATETIME2(0) NOT NULL CONSTRAINT DF_customer_segments_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_customer_segments PRIMARY KEY (customer_id)
+    );
+END
+GO
