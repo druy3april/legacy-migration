@@ -40,9 +40,14 @@ batch:
 
 check:
 	$(COMPOSE) exec -T sqlserver bash -c '$(SQLCMD) -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -d LegacyRetail -W' < scripts/check.sql
+
 wh:
 	$(COMPOSE) up -d --wait postgres
 	$(COMPOSE) exec -T postgres bash -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < warehouse/init.sql
 
 wh-sql:
 	$(COMPOSE) exec postgres bash -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+
+minio:
+	$(COMPOSE) up -d minio
+	python scripts/init_minio.py

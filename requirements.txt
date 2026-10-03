@@ -1,3 +1,4 @@
 pymssql
 python-dotenv
 faker
+boto3
