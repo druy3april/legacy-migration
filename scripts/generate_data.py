@@ -2,7 +2,7 @@
 import os
 import random
 import sys
-
+from datetime import datetime, timedelta
 import pymssql
 from dotenv import load_dotenv
 from faker import Faker
@@ -24,6 +24,10 @@ CATALOG = {
 }
 VARIANTS = ["Loại 1", "Loại 2", "Loại 3"]
 
+NUM_ORDERS = 20000
+ORDER_START = datetime(2026, 4, 1)   # ngày bắt đầu của dữ liệu đơn hàng
+ORDER_DAYS = 180                      # trải đơn hàng trong 180 ngày
+STATUS_WEIGHTS = {"COMPLETED": 60, "SHIPPED": 10, "PAID": 10, "NEW": 5, "CANCELLED": 15}
 
 def get_connection():
     return pymssql.connect(
@@ -82,6 +86,62 @@ def seed_products(conn) -> None:
     print(f"Đã thêm {len(rows)} sản phẩm")
 
 
+def seed_orders(conn) -> None:
+    cur = conn.cursor()
+    if table_has_data(cur, "dbo.orders"):
+        print("orders đã có dữ liệu, bỏ qua")
+        return
+
+    cur.execute("SELECT customer_id FROM dbo.customers")
+    customer_ids = [row[0] for row in cur.fetchall()]
+    cur.execute("SELECT product_id, unit_price FROM dbo.products WHERE is_active = 1")
+    products = cur.fetchall()
+    if not customer_ids or not products:
+        print("Chưa có khách hàng hoặc sản phẩm, hãy sinh chúng trước")
+        return
+
+    random.seed(SEED + 1)  # tách riêng hạt giống để đơn hàng luôn giống nhau mỗi lần
+    statuses = list(STATUS_WEIGHTS)
+    weights = list(STATUS_WEIGHTS.values())
+
+    orders = []  # mỗi phần tử: (customer_id, order_date, status, total_amount, updated_at)
+    lines_per_order = []  # song song với orders: danh sách dòng hàng của từng đơn
+    for _ in range(NUM_ORDERS):
+        order_date = ORDER_START + timedelta(
+            days=random.randrange(ORDER_DAYS), seconds=random.randrange(86400)
+        )
+        status = random.choices(statuses, weights)[0]
+
+        lines = []
+        for product_id, unit_price in random.sample(products, random.randint(1, 5)):
+            lines.append((product_id, random.randint(1, 4), unit_price))
+        total = sum(qty * price for _, qty, price in lines)
+
+        updated_at = order_date + timedelta(hours=random.randint(0, 48))
+        orders.append((random.choice(customer_ids), order_date, status, total, updated_at))
+        lines_per_order.append(lines)
+
+    cur.executemany(
+        "INSERT INTO dbo.orders (customer_id, order_date, status, total_amount, updated_at) "
+        "VALUES (%s, %s, %s, %s, %s)",
+        orders,
+    )
+    cur.execute("SELECT order_id FROM dbo.orders ORDER BY order_id")
+    order_ids = [row[0] for row in cur.fetchall()]
+
+    item_rows = []
+    for order_id, lines in zip(order_ids, lines_per_order):
+        for product_id, qty, price in lines:
+            item_rows.append((order_id, product_id, qty, price))
+
+    cur.executemany(
+        "INSERT INTO dbo.order_items (order_id, product_id, quantity, unit_price) "
+        "VALUES (%s, %s, %s, %s)",
+        item_rows,
+    )
+    conn.commit()
+    print(f"Đã thêm {len(orders)} đơn hàng và {len(item_rows)} dòng chi tiết")
+
 def main() -> int:
     random.seed(SEED)
     Faker.seed(SEED)
@@ -99,6 +159,7 @@ def main() -> int:
     with conn:
         seed_customers(conn, fake)
         seed_products(conn)
+        seed_orders(conn)
     return 0
 
 
