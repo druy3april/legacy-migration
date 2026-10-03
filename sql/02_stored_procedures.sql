@@ -104,23 +104,6 @@ BEGIN
 END
 GO
 
--- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
-CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @started DATETIME2(0) = SYSUTCDATETIME();
-
-    EXEC dbo.sp_refresh_daily_revenue;
-    EXEC dbo.sp_refresh_customer_ltv;
-    EXEC dbo.sp_refresh_customer_segments;
-    EXEC dbo.sp_refresh_product_sales;
-
-    PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
-END
-GO
-
 -- Làm mới doanh số theo sản phẩm: biến bảng + MERGE (upsert)
 CREATE OR ALTER PROCEDURE dbo.sp_refresh_product_sales
 AS
@@ -159,3 +142,60 @@ BEGIN
         DELETE;
 END
 GO
+
+-- Doanh thu theo danh mục x tháng, dùng SQL động để tạo cột theo tháng có dữ liệu
+CREATE OR ALTER PROCEDURE dbo.sp_refresh_category_monthly_revenue
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @cols NVARCHAR(MAX);
+    DECLARE @sql  NVARCHAR(MAX);
+
+    -- Danh sách tháng có đơn hàng, dạng: [2026-04],[2026-05],...
+    SELECT @cols = STRING_AGG(QUOTENAME(ym), ',') WITHIN GROUP (ORDER BY ym)
+    FROM (SELECT DISTINCT CONVERT(CHAR(7), order_date, 126) AS ym FROM dbo.orders) AS m;
+
+    IF @cols IS NULL
+        RETURN;
+
+    -- Số cột thay đổi theo dữ liệu nên bảng đích phải xóa đi tạo lại
+    IF OBJECT_ID(N'dbo.category_monthly_revenue', N'U') IS NOT NULL
+        DROP TABLE dbo.category_monthly_revenue;
+
+    SET @sql = N'
+        SELECT category, ' + @cols + N'
+        INTO dbo.category_monthly_revenue
+        FROM (
+            SELECT p.category,
+                   CONVERT(CHAR(7), o.order_date, 126) AS ym,
+                   oi.quantity * oi.unit_price AS amount
+            FROM dbo.order_items oi
+            JOIN dbo.orders   o ON o.order_id   = oi.order_id
+            JOIN dbo.products p ON p.product_id = oi.product_id
+            WHERE o.status IN (''PAID'', ''SHIPPED'', ''COMPLETED'')
+        ) AS src
+        PIVOT (SUM(amount) FOR ym IN (' + @cols + N')) AS pvt;';
+
+    EXEC (@sql);
+END
+GO
+
+-- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
+CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @started DATETIME2(0) = SYSUTCDATETIME();
+
+    EXEC dbo.sp_refresh_daily_revenue;
+    EXEC dbo.sp_refresh_customer_ltv;
+    EXEC dbo.sp_refresh_customer_segments;
+    EXEC dbo.sp_refresh_product_sales;
+    EXEC dbo.sp_refresh_category_monthly_revenue;
+
+    PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
+END
+GO
+
