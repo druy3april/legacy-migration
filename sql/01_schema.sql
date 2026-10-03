@@ -112,3 +112,17 @@ BEGIN
     );
 END
 GO
+
+-- Bảng báo cáo: doanh số theo sản phẩm
+IF OBJECT_ID(N'dbo.product_sales', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.product_sales (
+        product_id      INT           NOT NULL,
+        units_sold      INT           NOT NULL,
+        revenue         DECIMAL(18,2) NOT NULL,
+        last_sold_date  DATE          NULL,
+        refreshed_at    DATETIME2(0)  NOT NULL CONSTRAINT DF_product_sales_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_product_sales PRIMARY KEY (product_id)
+    );
+END
+GO

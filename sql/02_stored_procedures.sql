@@ -115,7 +115,47 @@ BEGIN
     EXEC dbo.sp_refresh_daily_revenue;
     EXEC dbo.sp_refresh_customer_ltv;
     EXEC dbo.sp_refresh_customer_segments;
+    EXEC dbo.sp_refresh_product_sales;
 
     PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
+END
+GO
+
+-- Làm mới doanh số theo sản phẩm: biến bảng + MERGE (upsert)
+CREATE OR ALTER PROCEDURE dbo.sp_refresh_product_sales
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @sales TABLE (
+        product_id  INT           NOT NULL PRIMARY KEY,
+        units_sold  INT           NOT NULL,
+        revenue     DECIMAL(18,2) NOT NULL,
+        last_sold   DATE          NULL
+    );
+
+    INSERT INTO @sales (product_id, units_sold, revenue, last_sold)
+    SELECT oi.product_id,
+           SUM(oi.quantity),
+           SUM(oi.quantity * oi.unit_price),
+           CONVERT(DATE, MAX(o.order_date))
+    FROM dbo.order_items oi
+    JOIN dbo.orders o ON o.order_id = oi.order_id
+    WHERE o.status IN ('PAID', 'SHIPPED', 'COMPLETED')
+    GROUP BY oi.product_id;
+
+    MERGE dbo.product_sales AS tgt
+    USING @sales AS src
+        ON tgt.product_id = src.product_id
+    WHEN MATCHED THEN
+        UPDATE SET tgt.units_sold     = src.units_sold,
+                   tgt.revenue        = src.revenue,
+                   tgt.last_sold_date = src.last_sold,
+                   tgt.refreshed_at   = SYSUTCDATETIME()
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (product_id, units_sold, revenue, last_sold_date)
+        VALUES (src.product_id, src.units_sold, src.revenue, src.last_sold)
+    WHEN NOT MATCHED BY SOURCE THEN
+        DELETE;
 END
 GO
