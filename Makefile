@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -57,3 +57,8 @@ extract-full:
 
 load-customers:
 	python scripts/load_to_postgres.py
+
+TABLE ?= customers
+
+ingest:
+	python scripts/ingest_incremental.py $(TABLE)
