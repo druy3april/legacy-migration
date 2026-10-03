@@ -2,3 +2,4 @@ pymssql
 python-dotenv
 faker
 boto3
+pyarrow

@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -51,3 +51,6 @@ wh-sql:
 minio:
 	$(COMPOSE) up -d minio
 	python scripts/init_minio.py
+
+extract-full:
+	python scripts/extract_full.py
