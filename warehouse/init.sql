@@ -12,3 +12,14 @@ CREATE TABLE IF NOT EXISTS etl.watermarks (
 INSERT INTO etl.watermarks (table_name)
 VALUES ('customers'), ('products'), ('orders'), ('order_items')
 ON CONFLICT (table_name) DO NOTHING;
+
+-- Bảng thô: giữ nguyên dữ liệu nguồn. Giờ trong created_at là UTC (chưa gắn múi giờ)
+CREATE TABLE IF NOT EXISTS raw.customers (
+    customer_id  INT         PRIMARY KEY,
+    full_name    TEXT        NOT NULL,
+    email        TEXT        NOT NULL,
+    city         TEXT,
+    created_at   TIMESTAMP   NOT NULL,
+    row_ver      BIGINT      NOT NULL,
+    _loaded_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);

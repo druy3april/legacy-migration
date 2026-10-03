@@ -3,3 +3,4 @@ python-dotenv
 faker
 boto3
 pyarrow
+psycopg[binary]
