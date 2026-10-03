@@ -32,3 +32,43 @@ BEGIN
     );
 END
 GO
+
+-- Bảng đơn hàng
+IF OBJECT_ID(N'dbo.orders', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.orders (
+        order_id      INT IDENTITY(1,1) NOT NULL,
+        customer_id   INT               NOT NULL,
+        order_date    DATETIME2(0)      NOT NULL,
+        status        VARCHAR(20)       NOT NULL,
+        total_amount  DECIMAL(14,2)     NOT NULL CONSTRAINT DF_orders_total DEFAULT 0,
+        updated_at    DATETIME2(0)      NOT NULL CONSTRAINT DF_orders_updated_at DEFAULT SYSUTCDATETIME(),
+        row_ver       ROWVERSION        NOT NULL,
+        CONSTRAINT PK_orders PRIMARY KEY (order_id),
+        CONSTRAINT FK_orders_customer FOREIGN KEY (customer_id) REFERENCES dbo.customers (customer_id),
+        CONSTRAINT CK_orders_status CHECK (status IN ('NEW','PAID','SHIPPED','COMPLETED','CANCELLED'))
+    );
+
+    CREATE INDEX IX_orders_customer_id ON dbo.orders (customer_id);
+    CREATE INDEX IX_orders_order_date  ON dbo.orders (order_date);
+END
+GO
+
+-- Bảng chi tiết đơn hàng
+IF OBJECT_ID(N'dbo.order_items', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.order_items (
+        order_item_id INT IDENTITY(1,1) NOT NULL,
+        order_id      INT               NOT NULL,
+        product_id    INT               NOT NULL,
+        quantity      INT               NOT NULL CONSTRAINT CK_items_quantity CHECK (quantity > 0),
+        unit_price    DECIMAL(12,2)     NOT NULL CONSTRAINT CK_items_price CHECK (unit_price >= 0),
+        row_ver       ROWVERSION        NOT NULL,
+        CONSTRAINT PK_order_items PRIMARY KEY (order_item_id),
+        CONSTRAINT FK_items_order FOREIGN KEY (order_id) REFERENCES dbo.orders (order_id),
+        CONSTRAINT FK_items_product FOREIGN KEY (product_id) REFERENCES dbo.products (product_id)
+    );
+
+    CREATE INDEX IX_items_order_id ON dbo.order_items (order_id);
+END
+GO
