@@ -126,3 +126,16 @@ BEGIN
     );
 END
 GO
+
+-- Bảng báo cáo: doanh thu lũy kế theo ngày
+IF OBJECT_ID(N'dbo.cumulative_revenue', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.cumulative_revenue (
+        revenue_date   DATE          NOT NULL,
+        daily_revenue  DECIMAL(18,2) NOT NULL,
+        running_total  DECIMAL(18,2) NOT NULL,
+        refreshed_at   DATETIME2(0)  NOT NULL CONSTRAINT DF_cumulative_revenue_refreshed DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_cumulative_revenue PRIMARY KEY (revenue_date)
+    );
+END
+GO

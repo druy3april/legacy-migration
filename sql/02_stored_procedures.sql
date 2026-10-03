@@ -181,6 +181,38 @@ BEGIN
 END
 GO
 
+-- Doanh thu lũy kế theo ngày, viết kiểu vòng lặp WHILE đi từng ngày
+CREATE OR ALTER PROCEDURE dbo.sp_refresh_cumulative_revenue
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @day     DATE;
+    DECLARE @last    DATE;
+    DECLARE @daily   DECIMAL(18,2);
+    DECLARE @running DECIMAL(18,2) = 0;
+
+    SELECT @day = MIN(revenue_date), @last = MAX(revenue_date)
+    FROM dbo.daily_revenue;
+
+    TRUNCATE TABLE dbo.cumulative_revenue;
+
+    WHILE @day IS NOT NULL AND @day <= @last
+    BEGIN
+        SELECT @daily = ISNULL(SUM(gross_revenue), 0)
+        FROM dbo.daily_revenue
+        WHERE revenue_date = @day;
+
+        SET @running = @running + @daily;
+
+        INSERT INTO dbo.cumulative_revenue (revenue_date, daily_revenue, running_total)
+        VALUES (@day, @daily, @running);
+
+        SET @day = DATEADD(DAY, 1, @day);
+    END
+END
+GO
+
 -- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
 CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
 AS
@@ -194,6 +226,7 @@ BEGIN
     EXEC dbo.sp_refresh_customer_segments;
     EXEC dbo.sp_refresh_product_sales;
     EXEC dbo.sp_refresh_category_monthly_revenue;
+    EXEC dbo.sp_refresh_cumulative_revenue;
 
     PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
 END
