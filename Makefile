@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate 
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -67,3 +67,6 @@ ARGS ?=
 
 simulate:
 	python scripts/simulate_changes.py $(ARGS)
+
+ingest-all:
+	for t in customers products orders order_items; do python scripts/ingest_incremental.py $$t || exit 1; done

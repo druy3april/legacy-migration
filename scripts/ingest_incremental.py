@@ -18,6 +18,18 @@ TABLES = {
         "key": "customer_id",
         "columns": ["customer_id", "full_name", "email", "city", "created_at"],
     },
+    "products": {
+        "key": "product_id",
+        "columns": ["product_id", "product_name", "category", "unit_price", "is_active", "created_at"],
+    },
+    "orders": {
+        "key": "order_id",
+        "columns": ["order_id", "customer_id", "order_date", "status", "total_amount", "updated_at"],
+    },
+    "order_items": {
+        "key": "order_item_id",
+        "columns": ["order_item_id", "order_id", "product_id", "quantity", "unit_price"],
+    },
 }
 
 

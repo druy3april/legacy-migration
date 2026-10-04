@@ -23,3 +23,36 @@ CREATE TABLE IF NOT EXISTS raw.customers (
     row_ver      BIGINT      NOT NULL,
     _loaded_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Bảng thô cho sản phẩm. Giữ nguyên dữ liệu nguồn, chỉ có khóa chính (không có CHECK, không có khóa ngoại)
+CREATE TABLE IF NOT EXISTS raw.products (
+    product_id    INT           PRIMARY KEY,
+    product_name  TEXT          NOT NULL,
+    category      TEXT          NOT NULL,
+    unit_price    NUMERIC(12,2) NOT NULL,
+    is_active     BOOLEAN       NOT NULL,
+    created_at    TIMESTAMP     NOT NULL,
+    row_ver       BIGINT        NOT NULL,
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS raw.orders (
+    order_id      INT           PRIMARY KEY,
+    customer_id   INT           NOT NULL,
+    order_date    TIMESTAMP     NOT NULL,
+    status        TEXT          NOT NULL,
+    total_amount  NUMERIC(14,2) NOT NULL,
+    updated_at    TIMESTAMP     NOT NULL,
+    row_ver       BIGINT        NOT NULL,
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS raw.order_items (
+    order_item_id INT           PRIMARY KEY,
+    order_id      INT           NOT NULL,
+    product_id    INT           NOT NULL,
+    quantity      INT           NOT NULL,
+    unit_price    NUMERIC(12,2) NOT NULL,
+    row_ver       BIGINT        NOT NULL,
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
