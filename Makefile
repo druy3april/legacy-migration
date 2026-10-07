@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -70,3 +70,9 @@ simulate:
 
 ingest-all:
 	for t in customers products orders order_items; do python scripts/ingest_incremental.py $$t || exit 1; done
+
+airflow:
+	$(COMPOSE) up -d --build airflow
+
+airflow-logs:
+	$(COMPOSE) logs --tail=80 airflow

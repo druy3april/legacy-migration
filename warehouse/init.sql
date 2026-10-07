@@ -56,3 +56,16 @@ CREATE TABLE IF NOT EXISTS raw.order_items (
     row_ver       BIGINT        NOT NULL,
     _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
+
+
+-- Vai trò và database riêng để Airflow lưu metadata (lab cục bộ nên dùng mật khẩu đơn giản)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'airflow') THEN
+        CREATE ROLE airflow LOGIN PASSWORD 'airflow';
+    END IF;
+END
+$$;
+
+SELECT 'CREATE DATABASE airflow OWNER airflow'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'airflow')\gexec
