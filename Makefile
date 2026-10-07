@@ -69,7 +69,7 @@ simulate:
 	python scripts/simulate_changes.py $(ARGS)
 
 ingest-all:
-	for t in customers products orders order_items; do python scripts/ingest_incremental.py $$t || exit 1; done
+	python scripts/ingest_incremental.py all
 
 airflow:
 	$(COMPOSE) up -d --build airflow

@@ -9,6 +9,64 @@ CREATE TABLE IF NOT EXISTS etl.watermarks (
     last_run_at      TIMESTAMPTZ
 );
 
+DO $$
+BEGIN
+    IF to_regclass('etl.ingest_log') IS NOT NULL THEN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'etl' AND table_name = 'ingest_log'
+              AND column_name = 'ingest_id'
+        ) THEN
+            ALTER TABLE etl.ingest_log RENAME COLUMN ingest_id TO id;
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'etl' AND table_name = 'ingest_log'
+              AND column_name = 'last_rowversion'
+        ) THEN
+            ALTER TABLE etl.ingest_log RENAME COLUMN last_rowversion TO from_rowversion;
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'etl' AND table_name = 'ingest_log'
+              AND column_name = 'upper_rowversion'
+        ) THEN
+            ALTER TABLE etl.ingest_log RENAME COLUMN upper_rowversion TO to_rowversion;
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'etl' AND table_name = 'ingest_log'
+              AND column_name = 'rows_loaded'
+        ) THEN
+            ALTER TABLE etl.ingest_log RENAME COLUMN rows_loaded TO row_count;
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'etl' AND table_name = 'ingest_log'
+              AND column_name = 'logged_at'
+        ) THEN
+            ALTER TABLE etl.ingest_log RENAME COLUMN logged_at TO loaded_at;
+        END IF;
+        ALTER TABLE etl.ingest_log ADD COLUMN IF NOT EXISTS object_key TEXT;
+        ALTER TABLE etl.ingest_log ALTER COLUMN row_count TYPE INT USING row_count::INT;
+    END IF;
+END
+$$;
+
+CREATE TABLE IF NOT EXISTS etl.ingest_log (
+    id               BIGSERIAL   PRIMARY KEY,
+    run_id           TEXT        NOT NULL,
+    table_name       TEXT        NOT NULL,
+    from_rowversion  BIGINT      NOT NULL,
+    to_rowversion    BIGINT      NOT NULL,
+    row_count        INT         NOT NULL,
+    object_key       TEXT,
+    loaded_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_ingest_log_run_table
+    ON etl.ingest_log (run_id, table_name);
+
 INSERT INTO etl.watermarks (table_name)
 VALUES ('customers'), ('products'), ('orders'), ('order_items')
 ON CONFLICT (table_name) DO NOTHING;

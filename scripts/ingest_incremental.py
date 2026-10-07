@@ -2,6 +2,7 @@
 import io
 import os
 import sys
+import uuid
 
 import psycopg
 import pyarrow as pa
@@ -33,6 +34,33 @@ TABLES = {
 }
 
 
+class SchemaDriftError(RuntimeError):
+    """Raised when a source table's columns differ from the configured schema."""
+
+
+def check_schema(src, table: str, cfg: dict) -> None:
+    cur = src.cursor()
+    cur.execute(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+        "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = %s",
+        (table,),
+    )
+    source_columns = {row[0] for row in cur.fetchall()}
+    expected_columns = set(cfg["columns"]) | {"row_ver"}
+
+    added = sorted(source_columns - expected_columns)
+    removed = sorted(expected_columns - source_columns)
+    if added or removed:
+        changes = []
+        if added:
+            changes.append(f"cột được thêm: {', '.join(added)}")
+        if removed:
+            changes.append(f"cột bị thiếu: {', '.join(removed)}")
+        raise SchemaDriftError(
+            f"Schema nguồn dbo.{table} đã thay đổi ({'; '.join(changes)})"
+        )
+
+
 def get_watermark(pg, table: str) -> int:
     with pg.cursor() as cur:
         cur.execute("SELECT last_rowversion FROM etl.watermarks WHERE table_name = %s", (table,))
@@ -46,6 +74,11 @@ def get_upper_bound(src) -> int:
     cur = src.cursor()
     cur.execute("SELECT CAST(MIN_ACTIVE_ROWVERSION() AS BIGINT) - 1")
     return cur.fetchone()[0]
+
+
+def read_upper_bound() -> int:
+    with get_connection() as src:
+        return get_upper_bound(src)
 
 
 def extract_to_minio(src, s3, bucket: str, table: str, cfg: dict, last: int, upper: int):
@@ -94,34 +127,105 @@ def load_batch(pg, s3, bucket: str, key, table: str, cfg: dict, upper: int) -> N
         )
 
 
-def main() -> int:
-    table = sys.argv[1] if len(sys.argv) > 1 else "customers"
+def log_ingest(
+    pg,
+    run_id: str,
+    table: str,
+    from_rowversion: int,
+    to_rowversion: int,
+    row_count: int,
+    object_key: str | None,
+) -> None:
+    with pg.cursor() as cur:
+        cur.execute(
+            "INSERT INTO etl.ingest_log "
+            "(run_id, table_name, from_rowversion, to_rowversion, row_count, object_key) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (
+                run_id,
+                table,
+                from_rowversion,
+                to_rowversion,
+                row_count,
+                object_key,
+            ),
+        )
+
+
+def ingest_table(
+    table: str, upper: int | None = None, run_id: str = "manual"
+) -> dict[str, str | int | None]:
     cfg = TABLES.get(table)
     if cfg is None:
+        raise ValueError(
+            f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}"
+        )
+
+    with get_connection() as src, get_pg_connection() as pg:
+        check_schema(src, table, cfg)
+        last = get_watermark(pg, table)
+        upper = get_upper_bound(src) if upper is None else upper
+        print(f"[{table}] watermark cũ = {last}, cận trên an toàn = {upper}")
+
+        if upper <= last:
+            log_ingest(pg, run_id, table, last, last, 0, None)
+            return {
+                "table": table,
+                "rows": 0,
+                "from": last,
+                "to": last,
+                "key": None,
+            }
+
+        bucket = os.environ["MINIO_BUCKET"]
+        s3 = get_s3_client()
+        key, count = extract_to_minio(src, s3, bucket, table, cfg, last, upper)
+        load_batch(pg, s3, bucket, key, table, cfg, upper)
+        log_ingest(pg, run_id, table, last, upper, count, key)
+
+    return {
+        "table": table,
+        "rows": count,
+        "from": last,
+        "to": upper,
+        "key": key,
+    }
+
+
+def main() -> int:
+    table = sys.argv[1] if len(sys.argv) > 1 else "customers"
+    if table == "all":
+        tables = list(TABLES)
+    elif table in TABLES:
+        tables = [table]
+    else:
         print(f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}")
         return 1
 
     try:
-        bucket = os.environ["MINIO_BUCKET"]
-        s3 = get_s3_client()
-        with get_connection() as src, get_pg_connection() as pg:
-            last = get_watermark(pg, table)
-            upper = get_upper_bound(src)
-            print(f"[{table}] watermark cũ = {last}, cận trên an toàn = {upper}")
-            if upper <= last:
-                print(f"[{table}] Không có gì mới")
-                return 0
-
-            key, count = extract_to_minio(src, s3, bucket, table, cfg, last, upper)
-            load_batch(pg, s3, bucket, key, table, cfg, upper)
+        upper = read_upper_bound()
+        run_id = uuid.uuid4().hex
+        for selected_table in tables:
+            result = ingest_table(selected_table, upper=upper, run_id=run_id)
+            print(
+                f"[{result['table']}] Đã tải {result['rows']} dòng "
+                f"(rowversion {result['from']}..{result['to']})"
+            )
     except KeyError as exc:
         print(f"Thiếu biến môi trường {exc}, hãy kiểm tra file .env")
         return 1
-    except (pymssql.Error, psycopg.Error, BotoCoreError, ClientError, RuntimeError) as exc:
+    except (
+        pymssql.Error,
+        psycopg.Error,
+        BotoCoreError,
+        ClientError,
+        RuntimeError,
+        ValueError,
+        OSError,
+    ) as exc:
         print(f"Lỗi: {exc}")
         return 1
 
-    print(f"[{table}] Đã tải {count} dòng, watermark mới = {upper}")
     return 0
 
 
