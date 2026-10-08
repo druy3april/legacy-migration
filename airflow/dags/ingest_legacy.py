@@ -1,12 +1,11 @@
 """Daily incremental ingestion from the legacy SQL Server into the warehouse."""
-import json
 import logging
 import os
-import urllib.error
-import urllib.request
+import smtplib
+import ssl
 from datetime import timedelta
+from email.message import EmailMessage
 from typing import Any
-from urllib.parse import urlsplit
 
 import pendulum
 from airflow.exceptions import AirflowFailException
@@ -17,35 +16,43 @@ LOGGER = logging.getLogger(__name__)
 
 
 def notify_failure(context: dict[str, Any]) -> None:
-    """Log a final task failure and optionally notify the configured webhook."""
+    """Log a final task failure and optionally notify by Gmail."""
     task_instance = context.get("task_instance")
     exception = context.get("exception")
+    dag_id = context.get("dag").dag_id if context.get("dag") else "unknown"
+    task_id = task_instance.task_id if task_instance else "unknown"
     message = (
-        f"Airflow task failed: dag={context.get('dag').dag_id if context.get('dag') else 'unknown'}, "
-        f"task={task_instance.task_id if task_instance else 'unknown'}, "
+        f"Airflow task failed: dag={dag_id}, "
+        f"task={task_id}, "
         f"run_id={context.get('run_id')}, error={exception}"
     )
     LOGGER.error(message)
 
-    webhook_url = os.getenv("ALERT_WEBHOOK_URL")
-    if not webhook_url:
+    sender = os.getenv("ALERT_EMAIL_FROM", "").strip()
+    recipient = os.getenv("ALERT_EMAIL_TO", "").strip()
+    app_password = os.getenv("ALERT_EMAIL_APP_PASSWORD", "").strip().replace(" ", "")
+    email_settings = (sender, recipient, app_password)
+    if not any(email_settings):
+        return
+    if not all(email_settings):
+        LOGGER.error(
+            "Gmail alert configuration is incomplete; set ALERT_EMAIL_FROM, "
+            "ALERT_EMAIL_TO, and ALERT_EMAIL_APP_PASSWORD"
+        )
         return
 
-    host = urlsplit(webhook_url).hostname
-    payload_key = "content" if host in {"discord.com", "discordapp.com"} else "text"
-    payload = json.dumps({payload_key: message}).encode("utf-8")
-    request = urllib.request.Request(
-        webhook_url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    email = EmailMessage()
+    email["Subject"] = f"Airflow task failed: {dag_id}.{task_id}"
+    email["From"] = sender
+    email["To"] = recipient
+    email.set_content(message)
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
-            if response.status >= 400:
-                LOGGER.error("Failure webhook returned HTTP %s", response.status)
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        LOGGER.error("Could not send Airflow failure webhook: %s", exc)
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+            smtp.starttls(context=ssl.create_default_context())
+            smtp.login(sender, app_password)
+            smtp.send_message(email)
+    except (smtplib.SMTPException, OSError, TimeoutError) as exc:
+        LOGGER.error("Could not send Airflow failure email: %s", exc)
 
 
 @dag(
