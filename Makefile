@@ -1,7 +1,7 @@
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -76,3 +76,12 @@ airflow:
 
 airflow-logs:
 	$(COMPOSE) logs --tail=80 airflow
+
+airflow-pass:
+	$(COMPOSE) exec airflow cat /opt/airflow/simple_auth_manager_passwords.json.generated
+
+dag-check:
+	$(COMPOSE) exec airflow airflow dags list-import-errors
+
+dag-test:
+	$(COMPOSE) exec airflow airflow dags test ingest_legacy
