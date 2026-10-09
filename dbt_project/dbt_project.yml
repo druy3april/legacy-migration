@@ -1,0 +1,33 @@
+name: legacy_migration
+version: "1.0.0"
+profile: legacy_migration
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+clean-targets: ["target", "dbt_packages"]
+
+on-run-start:
+  - "{{ create_row_count_audit() }}"
+on-run-end:
+  - "{{ log_row_counts(results) }}"
+
+vars:
+  segment_as_of: "2026-09-30"   # khớp @as_of trong sp_refresh_customer_segments
+  vip_threshold: 250000000
+  regular_threshold: 100000000
+  dormant_days: 60
+  paid_statuses: ["PAID", "SHIPPED", "COMPLETED"]
+
+models:
+  legacy_migration:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table

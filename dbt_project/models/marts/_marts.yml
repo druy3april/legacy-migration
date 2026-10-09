@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: mart_daily_revenue
+    description: "Doanh thu theo ngày, không tính đơn CANCELLED. Thay dbo.sp_refresh_daily_revenue"
+    columns:
+      - name: revenue_date
+        data_tests: [unique, not_null]
+      - name: gross_revenue
+        data_tests: [not_null, non_negative]
+
+  - name: mart_customer_ltv
+    description: "LTV mỗi khách (đơn PAID/SHIPPED/COMPLETED). Thay dbo.sp_refresh_customer_ltv"
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: total_spent
+        data_tests: [not_null, non_negative]
+
+  - name: mart_customer_segments
+    description: "Phân khúc khách hàng. Thay dbo.sp_refresh_customer_segments (cursor)"
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: segment
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["INACTIVE", "DORMANT", "VIP", "REGULAR", "CASUAL"]
+
+  - name: mart_product_sales
+    description: "Doanh số theo sản phẩm. Thay dbo.sp_refresh_product_sales (MERGE)"
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: revenue
+        data_tests: [non_negative]
+
+  - name: mart_category_monthly_revenue
+    description: "Doanh thu danh mục x tháng dạng ngang. Thay dbo.sp_refresh_category_monthly_revenue (SQL động)"
+    columns:
+      - name: category
+        data_tests: [unique, not_null]
+
+  - name: mart_cumulative_revenue
+    description: "Doanh thu lũy kế từng ngày. Thay dbo.sp_refresh_cumulative_revenue (WHILE)"
+    columns:
+      - name: revenue_date
+        data_tests: [unique, not_null]
+      - name: running_total
+        data_tests: [non_negative]
+
+  - name: mart_top_products_by_category
+    description: "Top 3 sản phẩm theo doanh thu mỗi danh mục. Thay dbo.sp_refresh_top_products_by_category"
+    data_tests:
+      - unique:
+          arguments:
+            column_name: "category || '|' || rank_in_category"
+    columns:
+      - name: rank_in_category
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3]
+                quote: false

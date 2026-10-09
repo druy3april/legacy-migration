@@ -3,3 +3,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+/dbt_project/target/
+/dbt_project/dbt_packages/
+/dbt_project/logs/
+target/
+logs/
+dbt_packages/
+.user.yml

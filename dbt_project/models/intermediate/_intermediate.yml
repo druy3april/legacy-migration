@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: int_category_monthly_revenue
+    description: Revenue by product category and calendar month for paid-or-later orders.
+    columns:
+      - name: category
+        tests: [not_null]
+      - name: year_month
+        tests: [not_null]
+      - name: revenue
+        tests: [non_negative]

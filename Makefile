@@ -1,7 +1,10 @@
+-include .env
+export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
+
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -85,3 +88,21 @@ dag-check:
 
 dag-test:
 	$(COMPOSE) exec airflow airflow dags test ingest_legacy
+
+# ---- dbt (Tuan 3-4) ----
+DBT_LOCAL = cd dbt_project && ../.venv/bin/dbt
+DBT_IN_AIRFLOW = $(COMPOSE) exec -e DBT_PROFILES_DIR=/opt/airflow/dbt_project -e DBT_TARGET_PATH=/tmp/dbt_target -e DBT_LOG_PATH=/tmp/dbt_logs -w /opt/airflow/dbt_project airflow /home/airflow/dbt-venv/bin/dbt
+SELECT ?=
+
+dbt-debug:
+	$(DBT_LOCAL) debug --profiles-dir .
+
+dbt-build:
+	$(DBT_LOCAL) build --profiles-dir . $(if $(SELECT),-s $(SELECT),)
+
+dbt-docs:
+	$(DBT_LOCAL) docs generate --profiles-dir .
+	$(DBT_LOCAL) docs serve --profiles-dir . --port 8081
+
+dbt-airflow:
+	$(DBT_IN_AIRFLOW) build

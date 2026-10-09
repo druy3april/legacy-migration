@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Dữ liệu tải tăng dần từ SQL Server (upsert theo khóa, xem ADR-0002)"
+    tables:
+      - name: customers
+      - name: products
+      - name: orders
+      - name: order_items
+
+  - name: etl
+    schema: etl
+    tables:
+      - name: ingest_log
+        description: "Mỗi lần chạy ingestion ghi một dòng cho mỗi bảng, kể cả khi 0 dòng"
+        loaded_at_field: loaded_at
+        freshness:
+          warn_after: {count: 26, period: hour}
+          error_after: {count: 50, period: hour}

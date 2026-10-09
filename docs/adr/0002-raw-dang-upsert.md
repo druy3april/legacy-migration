@@ -14,6 +14,18 @@ dấu bản ghi là hiện hành.
 Lịch sử các batch được lưu thành file Parquet bất biến trên MinIO và được tham
 chiếu trong `etl.ingest_log`; bảng raw không phải kho lịch sử phiên bản.
 
+## Đường dẫn file
+
+Incremental Parquet dùng key `raw/{table}/incremental/rv_{from}_{to}.parquet`,
+trong đó hai cận rowversion được zero-pad để sắp xếp từ điển cũng theo thứ tự
+thời gian. Cùng một khoảng watermark luôn tạo cùng key, nên retry hoặc backfill
+ghi đè đúng đối tượng, không tạo nhiều file giống nhau; `etl.ingest_log` giữ
+run ID và khoảng rowversion cho từng lần thử.
+
+Không dùng `dt=.../run_<id>` vì thời điểm chạy hoặc run ID khác nhau khi retry
+cùng một khoảng dữ liệu, làm mất tính idempotent ở tầng object. Partition ngày
+cũng không diễn tả chính xác ranh giới incremental dựa trên `rowversion`.
+
 ## Tải lại (backfill)
 
 - Ưu tiên phát lại file Parquet đã lưu trên MinIO bằng loader tương ứng với schema

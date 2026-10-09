@@ -258,7 +258,7 @@ BEGIN
 END
 GO
 
--- Điều phối job ban đêm: chạy 3 procedure theo đúng thứ tự phụ thuộc
+-- Điều phối job ban đêm: chạy 7 procedure theo đúng thứ tự phụ thuộc
 CREATE OR ALTER PROCEDURE dbo.sp_run_nightly_batch
 AS
 BEGIN
@@ -277,4 +277,3 @@ BEGIN
     PRINT CONCAT('Batch hoan tat sau ', DATEDIFF(SECOND, @started, SYSUTCDATETIME()), ' giay');
 END
 GO
-
