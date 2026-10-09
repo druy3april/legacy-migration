@@ -1,4 +1,4 @@
-# Tuần 2 — Bằng chứng kiểm thử ingestion
+# Tuần 2 — Kịch bản bổ sung kiểm thử ingestion
 
 Các run dưới đây được chạy trên Docker Compose local ngày 2026-10-08 và
 2026-10-09. Số liệu lấy trực tiếp từ `etl.ingest_log`, raw Postgres và
