@@ -21,7 +21,8 @@ ON CONFLICT (customer_id) DO UPDATE SET
     city       = EXCLUDED.city,
     created_at = EXCLUDED.created_at,
     row_ver    = EXCLUDED.row_ver,
-    _loaded_at = now()
+    _loaded_at = now(),
+    _deleted_at = NULL
 WHERE EXCLUDED.row_ver > raw.customers.row_ver
 """
 

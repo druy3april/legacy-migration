@@ -79,8 +79,10 @@ CREATE TABLE IF NOT EXISTS raw.customers (
     city         TEXT,
     created_at   TIMESTAMP   NOT NULL,
     row_ver      BIGINT      NOT NULL,
-    _loaded_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    _loaded_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    _deleted_at  TIMESTAMPTZ
 );
+ALTER TABLE raw.customers ADD COLUMN IF NOT EXISTS _deleted_at TIMESTAMPTZ;
 
 -- Bảng thô cho sản phẩm. Giữ nguyên dữ liệu nguồn, chỉ có khóa chính (không có CHECK, không có khóa ngoại)
 CREATE TABLE IF NOT EXISTS raw.products (
@@ -91,8 +93,10 @@ CREATE TABLE IF NOT EXISTS raw.products (
     is_active     BOOLEAN       NOT NULL,
     created_at    TIMESTAMP     NOT NULL,
     row_ver       BIGINT        NOT NULL,
-    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    _deleted_at   TIMESTAMPTZ
 );
+ALTER TABLE raw.products ADD COLUMN IF NOT EXISTS _deleted_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS raw.orders (
     order_id      INT           PRIMARY KEY,
@@ -102,8 +106,10 @@ CREATE TABLE IF NOT EXISTS raw.orders (
     total_amount  NUMERIC(14,2) NOT NULL,
     updated_at    TIMESTAMP     NOT NULL,
     row_ver       BIGINT        NOT NULL,
-    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    _deleted_at   TIMESTAMPTZ
 );
+ALTER TABLE raw.orders ADD COLUMN IF NOT EXISTS _deleted_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS raw.order_items (
     order_item_id INT           PRIMARY KEY,
@@ -112,8 +118,10 @@ CREATE TABLE IF NOT EXISTS raw.order_items (
     quantity      INT           NOT NULL,
     unit_price    NUMERIC(12,2) NOT NULL,
     row_ver       BIGINT        NOT NULL,
-    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
+    _loaded_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    _deleted_at   TIMESTAMPTZ
 );
+ALTER TABLE raw.order_items ADD COLUMN IF NOT EXISTS _deleted_at TIMESTAMPTZ;
 
 
 -- Vai trò và database riêng để Airflow lưu metadata (lab cục bộ nên dùng mật khẩu đơn giản)

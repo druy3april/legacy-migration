@@ -105,10 +105,11 @@ def extract_to_minio(src, s3, bucket: str, table: str, cfg: dict, last: int, upp
 
 def build_upsert_sql(table: str, key: str, columns: list) -> str:
     placeholders = ", ".join(["%s"] * len(columns))
-    updates = ", ".join(f"{col} = EXCLUDED.{col}" for col in columns if col != key)
+    updates = [f"{col} = EXCLUDED.{col}" for col in columns if col != key]
+    updates.append("_deleted_at = NULL")
     return (
         f"INSERT INTO raw.{table} ({', '.join(columns)}) VALUES ({placeholders}) "
-        f"ON CONFLICT ({key}) DO UPDATE SET {updates}, _loaded_at = now() "
+        f"ON CONFLICT ({key}) DO UPDATE SET {', '.join(updates)}, _loaded_at = now() "
         f"WHERE EXCLUDED.row_ver > raw.{table}.row_ver"
     )
 
@@ -125,6 +126,36 @@ def load_batch(pg, s3, bucket: str, key, table: str, cfg: dict, upper: int) -> N
             "UPDATE etl.watermarks SET last_rowversion = %s, last_run_at = now() WHERE table_name = %s",
             (upper, table),
         )
+
+
+def detect_deletes(table: str) -> int:
+    cfg = TABLES.get(table)
+    if cfg is None:
+        raise ValueError(
+            f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}"
+        )
+
+    key = cfg["key"]
+    deleted_count = 0
+    with get_connection() as src, get_pg_connection() as pg:
+        src_cur = src.cursor()
+        src_cur.execute(f"SELECT {key} FROM dbo.{table}")
+
+        with pg.cursor() as pg_cur:
+            pg_cur.execute("CREATE TEMP TABLE src_keys (k INT PRIMARY KEY) ON COMMIT DROP")
+            with pg_cur.copy("COPY src_keys (k) FROM STDIN") as copy:
+                while rows := src_cur.fetchmany(10000):
+                    for row in rows:
+                        copy.write_row((row[0],))
+
+            pg_cur.execute(
+                f"UPDATE raw.{table} AS r SET _deleted_at = now() "
+                f"WHERE r._deleted_at IS NULL "
+                f"AND NOT EXISTS (SELECT 1 FROM src_keys AS s WHERE s.k = r.{key})"
+            )
+            deleted_count = pg_cur.rowcount
+
+    return deleted_count
 
 
 def log_ingest(

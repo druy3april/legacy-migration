@@ -92,21 +92,48 @@ def ingest_legacy():
             raise AirflowFailException(str(exc)) from exc
 
     @task
-    def summarize(results: list[dict[str, Any]]) -> None:
+    def detect_deletes(
+        ingestion_results: list[dict[str, str | int | None]],
+    ) -> list[dict[str, str | int]]:
+        from ingest_incremental import detect_deletes as mark_deleted_rows
+
+        results = []
+        for result in ingestion_results:
+            table = str(result["table"])
+            deleted_count = mark_deleted_rows(table)
+            LOGGER.info(
+                "Delete detection completed: table=%s deleted=%d",
+                table,
+                deleted_count,
+            )
+            results.append({"table": table, "deleted": deleted_count})
+        return results
+
+    @task
+    def summarize(
+        results: list[dict[str, Any]], deletion_results: list[dict[str, Any]]
+    ) -> None:
         row_counts = {
             str(result["table"]): int(result["rows"])
             for result in results
         }
         total_rows = sum(row_counts.values())
+        deleted_counts = {
+            str(result["table"]): int(result["deleted"])
+            for result in deletion_results
+        }
         LOGGER.info(
-            "Ingestion run completed: rows_by_table=%s total_rows=%d",
+            "Ingestion run completed: rows_by_table=%s total_rows=%d "
+            "deleted_by_table=%s",
             row_counts,
             total_rows,
+            deleted_counts,
         )
 
     upper = get_upper_bound()
     ingestion_results = ingest.partial(upper=upper).expand(table=SOURCE_TABLES)
-    summarize(ingestion_results)
+    deletion_results = detect_deletes(ingestion_results)
+    summarize(ingestion_results, deletion_results)
 
 
 ingest_legacy()
