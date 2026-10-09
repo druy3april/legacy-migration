@@ -38,6 +38,30 @@ class SchemaDriftError(RuntimeError):
     """Raised when a source table's columns differ from the configured schema."""
 
 
+class DeleteGuardError(RuntimeError):
+    """Raised when delete detection would mark an abnormally large share of rows."""
+
+
+MAX_DELETE_RATIO = float(os.getenv("MAX_DELETE_RATIO", "0.05"))
+if not 0 <= MAX_DELETE_RATIO <= 1:
+    raise ValueError("MAX_DELETE_RATIO must be between 0 and 1")
+
+
+def guard_delete_ratio(
+    table: str,
+    to_delete: int,
+    active: int,
+    max_delete_ratio: float = MAX_DELETE_RATIO,
+) -> None:
+    if active and to_delete / active > max_delete_ratio:
+        raise DeleteGuardError(
+            f"[{table}] định đánh dấu xóa {to_delete}/{active} dòng "
+            f"({to_delete / active:.1%}), vượt ngưỡng {max_delete_ratio:.0%}. "
+            "Kiểm tra nguồn rồi chạy lại với MAX_DELETE_RATIO lớn hơn nếu đúng "
+            "là xóa thật."
+        )
+
+
 def check_schema(src, table: str, cfg: dict) -> None:
     cur = src.cursor()
     cur.execute(
@@ -140,13 +164,20 @@ def detect_deletes(table: str) -> int:
     with get_connection() as src, get_pg_connection() as pg:
         src_cur = src.cursor()
         src_cur.execute(f"SELECT {key} FROM dbo.{table}")
-
         with pg.cursor() as pg_cur:
             pg_cur.execute("CREATE TEMP TABLE src_keys (k INT PRIMARY KEY) ON COMMIT DROP")
             with pg_cur.copy("COPY src_keys (k) FROM STDIN") as copy:
                 while rows := src_cur.fetchmany(10000):
                     for row in rows:
                         copy.write_row((row[0],))
+
+            pg_cur.execute(
+                f"SELECT COUNT(*) FILTER (WHERE NOT EXISTS "
+                f"(SELECT 1 FROM src_keys AS s WHERE s.k = r.{key})), COUNT(*) "
+                f"FROM raw.{table} AS r WHERE r._deleted_at IS NULL"
+            )
+            to_delete, active = pg_cur.fetchone()
+            guard_delete_ratio(table, to_delete, active)
 
             pg_cur.execute(
                 f"UPDATE raw.{table} AS r SET _deleted_at = now() "

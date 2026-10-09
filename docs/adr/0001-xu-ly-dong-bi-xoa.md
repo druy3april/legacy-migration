@@ -43,3 +43,6 @@ hình retention và có quy trình phát hiện watermark đã quá hạn.
 - `rowversion` không ghi nhận DELETE; độ trễ phát hiện tối đa là một chu kỳ chạy.
 - Tập khóa được truyền theo lô vào bảng tạm Postgres, không cần giữ toàn bộ khóa
   của bảng trong bộ nhớ Python.
+- Trước khi đánh dấu, detector chặn nếu tỷ lệ dòng raw đang hoạt động dự kiến bị
+  đánh dấu xóa vượt `MAX_DELETE_RATIO` (mặc định `0.05`). Chỉ tăng ngưỡng có chủ
+  ý sau khi xác minh nguồn nếu một đợt xóa hợp lệ lớn hơn ngưỡng.

@@ -95,12 +95,18 @@ def ingest_legacy():
     def detect_deletes(
         ingestion_results: list[dict[str, str | int | None]],
     ) -> list[dict[str, str | int]]:
-        from ingest_incremental import detect_deletes as mark_deleted_rows
+        from ingest_incremental import (
+            DeleteGuardError,
+            detect_deletes as mark_deleted_rows,
+        )
 
         results = []
         for result in ingestion_results:
             table = str(result["table"])
-            deleted_count = mark_deleted_rows(table)
+            try:
+                deleted_count = mark_deleted_rows(table)
+            except DeleteGuardError as exc:
+                raise AirflowFailException(str(exc)) from exc
             LOGGER.info(
                 "Delete detection completed: table=%s deleted=%d",
                 table,
