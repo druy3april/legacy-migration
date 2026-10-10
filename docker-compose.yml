@@ -79,7 +79,7 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
-      PYTHONPATH: /opt/airflow/scripts
+      PYTHONPATH: /opt/airflow/scripts:/opt/airflow/libs
       MSSQL_HOST: sqlserver
       MSSQL_PORT: "1433"
       POSTGRES_HOST: postgres
@@ -96,6 +96,7 @@ services:
       - ./airflow/plugins:/opt/airflow/plugins:z
       - ./dbt_project:/opt/airflow/dbt_project:ro,z
       - ./scripts:/opt/airflow/scripts:ro,z
+      - ./reconciliation:/opt/airflow/libs/reconciliation:ro,z
       - airflow_logs:/opt/airflow/logs
     
 

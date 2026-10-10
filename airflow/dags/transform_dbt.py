@@ -6,7 +6,7 @@ from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import dag
 
 from common.alerts import notify_failure
-from common.assets import WAREHOUSE_RAW
+from common.assets import WAREHOUSE_MARTS, WAREHOUSE_RAW
 
 DBT = "/home/airflow/dbt-venv/bin/dbt"
 DBT_DIR = "/opt/airflow/dbt_project"
@@ -47,6 +47,7 @@ def transform_dbt():
         bash_command=f"cd {DBT_DIR} && {DBT} build --profiles-dir {DBT_DIR} {DBT_PATH_ARGS}",
         env=DBT_ENV,
         append_env=True,
+        outlets=[WAREHOUSE_MARTS],  # chỉ phát khi dbt build xanh -> kích hoạt đối soát
     )
     freshness >> build
 
