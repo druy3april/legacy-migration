@@ -4,7 +4,7 @@ export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -106,3 +106,6 @@ dbt-docs:
 
 dbt-airflow:
 	$(DBT_IN_AIRFLOW) build
+
+test:
+	.venv/bin/python -m unittest discover -s tests -v
