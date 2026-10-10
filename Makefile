@@ -4,7 +4,7 @@ export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase test
 
 help:
 	@echo "make up    - dung SQL Server va nap file sql/*.sql"
@@ -109,3 +109,16 @@ dbt-airflow:
 
 test:
 	.venv/bin/python -m unittest discover -s tests -v
+
+# ---- Đối soát (Tuần 5) ----
+RECON = PYTHONPATH=scripts:. python -m reconciliation
+REPORT ?=
+
+legacy-batch:            ## chạy job ban đêm cũ + ghi snapshot (thay cho make batch khi đối soát)
+	$(RECON).legacy_batch
+
+recon:                   ## đối soát tất cả báo cáo, hoặc make recon REPORT=daily_revenue
+	$(RECON).run $(REPORT)
+
+recon-airflow:
+	$(COMPOSE) exec airflow airflow dags trigger reconciliation
