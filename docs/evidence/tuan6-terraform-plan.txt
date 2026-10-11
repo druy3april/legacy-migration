@@ -1,0 +1,395 @@
+data.aws_iam_policy_document.redshift_assume: Reading...
+data.aws_iam_policy_document.airflow_assume: Reading...
+data.aws_iam_policy_document.airflow_assume: Read complete after 0s [id=2750727584]
+data.aws_iam_policy_document.redshift_assume: Read complete after 0s [id=2711399005]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # data.aws_iam_policy_document.pipeline will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "pipeline" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "s3:GetObject",
+              + "s3:PutObject",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "GhiDocDataLake"
+        }
+      + statement {
+          + actions   = [
+              + "s3:ListBucket",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "LietKeBucket"
+        }
+      + statement {
+          + actions   = [
+              + "secretsmanager:GetSecretValue",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "DocSecretNguon"
+        }
+      + statement {
+          + actions   = [
+              + "sns:Publish",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "GuiCanhBao"
+        }
+    }
+
+  # data.aws_iam_policy_document.warehouse_read_raw will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "warehouse_read_raw" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "s3:GetObject",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "DocVungRaw"
+        }
+      + statement {
+          + actions   = [
+              + "s3:ListBucket",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "LietKeBucket"
+        }
+    }
+
+  # aws_iam_role.pipeline will be created
+  + resource "aws_iam_role" "pipeline" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = [
+                              + "airflow.amazonaws.com",
+                              + "airflow-env.amazonaws.com",
+                            ]
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "legacy-migration-dev-pipeline"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags_all              = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role.warehouse will be created
+  + resource "aws_iam_role" "warehouse" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = [
+                              + "redshift.amazonaws.com",
+                              + "redshift-serverless.amazonaws.com",
+                            ]
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "legacy-migration-dev-warehouse"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags_all              = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role_policy.pipeline will be created
+  + resource "aws_iam_role_policy" "pipeline" {
+      + id          = (known after apply)
+      + name        = "pipeline"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.warehouse_read_raw will be created
+  + resource "aws_iam_role_policy" "warehouse_read_raw" {
+      + id          = (known after apply)
+      + name        = "read-raw"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_redshiftserverless_namespace.warehouse will be created
+  + resource "aws_redshiftserverless_namespace" "warehouse" {
+      + admin_password_secret_arn        = (known after apply)
+      + admin_password_secret_kms_key_id = (known after apply)
+      + admin_user_password_wo           = (write-only attribute)
+      + admin_username                   = (sensitive value)
+      + arn                              = (known after apply)
+      + db_name                          = "warehouse"
+      + default_iam_role_arn             = (known after apply)
+      + iam_roles                        = (known after apply)
+      + id                               = (known after apply)
+      + kms_key_id                       = (known after apply)
+      + manage_admin_password            = true
+      + namespace_id                     = (known after apply)
+      + namespace_name                   = "legacy-migration-dev-wh"
+      + region                           = "ap-southeast-1"
+      + tags_all                         = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+    }
+
+  # aws_redshiftserverless_workgroup.warehouse will be created
+  + resource "aws_redshiftserverless_workgroup" "warehouse" {
+      + arn                 = (known after apply)
+      + base_capacity       = 8
+      + endpoint            = (known after apply)
+      + id                  = (known after apply)
+      + max_capacity        = 16
+      + namespace_name      = "legacy-migration-dev-wh"
+      + port                = (known after apply)
+      + publicly_accessible = false
+      + region              = "ap-southeast-1"
+      + security_group_ids  = (known after apply)
+      + subnet_ids          = (known after apply)
+      + tags_all            = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+      + track_name          = (known after apply)
+      + workgroup_id        = (known after apply)
+      + workgroup_name      = "legacy-migration-dev-wg"
+
+      + config_parameter (known after apply)
+
+      + price_performance_target (known after apply)
+    }
+
+  # aws_s3_bucket.datalake will be created
+  + resource "aws_s3_bucket" "datalake" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = "legacy-migration-dev-datalake-druy3april"
+      + bucket_domain_name          = (known after apply)
+      + bucket_namespace            = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_region               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = false
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = "ap-southeast-1"
+      + request_payer               = (known after apply)
+      + tags_all                    = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+
+      + cors_rule (known after apply)
+
+      + grant (known after apply)
+
+      + lifecycle_rule (known after apply)
+
+      + logging (known after apply)
+
+      + object_lock_configuration (known after apply)
+
+      + replication_configuration (known after apply)
+
+      + server_side_encryption_configuration (known after apply)
+
+      + versioning (known after apply)
+
+      + website (known after apply)
+    }
+
+  # aws_s3_bucket_lifecycle_configuration.datalake will be created
+  + resource "aws_s3_bucket_lifecycle_configuration" "datalake" {
+      + bucket                                 = (known after apply)
+      + expected_bucket_owner                  = (known after apply)
+      + id                                     = (known after apply)
+      + region                                 = "ap-southeast-1"
+      + transition_default_minimum_object_size = "all_storage_classes_128K"
+
+      + rule {
+          + id     = "raw-sang-ia"
+          + status = "Enabled"
+            # (1 unchanged attribute hidden)
+
+          + filter {
+              + prefix = "raw/"
+            }
+
+          + noncurrent_version_expiration {
+              + noncurrent_days = 30
+            }
+
+          + transition {
+              + days          = 30
+              + storage_class = "STANDARD_IA"
+            }
+        }
+    }
+
+  # aws_s3_bucket_public_access_block.datalake will be created
+  + resource "aws_s3_bucket_public_access_block" "datalake" {
+      + block_public_acls       = true
+      + block_public_policy     = true
+      + bucket                  = (known after apply)
+      + id                      = (known after apply)
+      + ignore_public_acls      = true
+      + region                  = "ap-southeast-1"
+      + restrict_public_buckets = true
+    }
+
+  # aws_s3_bucket_server_side_encryption_configuration.datalake will be created
+  + resource "aws_s3_bucket_server_side_encryption_configuration" "datalake" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + region = "ap-southeast-1"
+
+      + rule {
+          + blocked_encryption_types = (known after apply)
+          + bucket_key_enabled       = (known after apply)
+
+          + apply_server_side_encryption_by_default {
+              + kms_master_key_id = (known after apply)
+              + sse_algorithm     = "AES256"
+            }
+        }
+    }
+
+  # aws_s3_bucket_versioning.datalake will be created
+  + resource "aws_s3_bucket_versioning" "datalake" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + region = "ap-southeast-1"
+
+      + versioning_configuration {
+          + mfa_delete = (known after apply)
+          + status     = "Enabled"
+        }
+    }
+
+  # aws_secretsmanager_secret.legacy_sqlserver will be created
+  + resource "aws_secretsmanager_secret" "legacy_sqlserver" {
+      + arn                            = (known after apply)
+      + description                    = "Thông tin kết nối SQL Server cũ cho task ingestion"
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = "legacy-migration-dev/legacy-sqlserver"
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 30
+      + region                         = "ap-southeast-1"
+      + tags_all                       = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+    }
+
+  # aws_sns_topic.pipeline_alerts will be created
+  + resource "aws_sns_topic" "pipeline_alerts" {
+      + arn                         = (known after apply)
+      + beginning_archive_time      = (known after apply)
+      + content_based_deduplication = false
+      + fifo_throughput_scope       = (known after apply)
+      + fifo_topic                  = false
+      + id                          = (known after apply)
+      + maximum_message_size        = (known after apply)
+      + name                        = "legacy-migration-dev-pipeline-alerts"
+      + name_prefix                 = (known after apply)
+      + owner                       = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = "ap-southeast-1"
+      + signature_version           = (known after apply)
+      + tags_all                    = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "terraform"
+          + "Project"     = "legacy-migration"
+        }
+      + tracing_config              = (known after apply)
+    }
+
+Plan: 13 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + alerts_topic_arn   = (known after apply)
+  + datalake_bucket    = "legacy-migration-dev-datalake-druy3april"
+  + pipeline_role_arn  = (known after apply)
+  + redshift_workgroup = "legacy-migration-dev-wg"
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

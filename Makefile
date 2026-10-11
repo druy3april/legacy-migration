@@ -173,3 +173,6 @@ lint:                    ## lint Python + SQL (SQLFluff cần Postgres đang ch�
 	.venv/bin/ruff check .
 	.venv/bin/ruff format --check .
 	.venv/bin/sqlfluff lint dbt_project/models dbt_project/tests
+
+readiness:               ## số ngày đối soát xanh liên tiếp (điều kiện cutover)
+	$(COMPOSE) exec -T postgres bash -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < reconciliation/sql/cutover_readiness.sql
