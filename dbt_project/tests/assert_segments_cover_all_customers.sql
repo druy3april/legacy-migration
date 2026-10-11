@@ -2,5 +2,5 @@
 select c.customer_id
 from {{ ref('stg_customers') }} as c
 left join {{ ref('mart_customer_segments') }} as s
-    on s.customer_id = c.customer_id
+    on c.customer_id = s.customer_id
 where s.customer_id is null

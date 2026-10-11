@@ -1,13 +1,14 @@
-WITH expected AS (
-    SELECT
+with expected as (
+    select
         revenue_date,
-        SUM(daily_revenue) OVER (
-            ORDER BY revenue_date
-            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-        ) AS running_total
-    FROM {{ ref('mart_cumulative_revenue') }}
+        sum(daily_revenue) over (
+            order by revenue_date
+            rows between unbounded preceding and current row
+        ) as running_total
+    from {{ ref('mart_cumulative_revenue') }}
 )
-SELECT actual.revenue_date
-FROM {{ ref('mart_cumulative_revenue') }} AS actual
-JOIN expected USING (revenue_date)
-WHERE actual.running_total IS DISTINCT FROM expected.running_total
+
+select actual.revenue_date
+from {{ ref('mart_cumulative_revenue') }} as actual
+inner join expected on actual.revenue_date = expected.revenue_date
+where actual.running_total is distinct from expected.running_total

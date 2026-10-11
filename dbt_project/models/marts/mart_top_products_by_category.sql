@@ -7,8 +7,8 @@ with product_revenue as (
         p.product_name,
         sum(oi.line_amount) as revenue
     from {{ ref('stg_order_items') }} as oi
-    join {{ ref('stg_orders') }}   as o on o.order_id   = oi.order_id
-    join {{ ref('stg_products') }} as p on p.product_id = oi.product_id
+    inner join {{ ref('stg_orders') }} as o on oi.order_id = o.order_id
+    inner join {{ ref('stg_products') }} as p on oi.product_id = p.product_id
     where {{ in_list('o.status', var('paid_statuses')) }}
     group by p.product_id, p.category, p.product_name
 ),
@@ -17,7 +17,7 @@ ranked as (
     select
         *,
         -- product_id để phá hòa: procedure gốc không xác định thứ tự khi bằng doanh thu
-        row_number() over (partition by category order by revenue desc, product_id) as rank_in_category
+        row_number() over (partition by category order by revenue desc, product_id asc) as rank_in_category
     from product_revenue
 )
 
