@@ -5,5 +5,4 @@ select
     count(*)::int as order_count,
     sum(total_amount)::numeric(18, 2) as gross_revenue
 from {{ ref('stg_orders') }}
-where status <> 'CANCELLED'
 group by order_day
