@@ -35,3 +35,31 @@
 - **Triệu chứng:** Source raw bị báo cũ dù DAG vẫn chạy đều.
 - **Nguyên nhân:** Với incremental upsert, `_loaded_at` của một dòng chỉ đổi khi bản ghi đó được nạp lại; không có thay đổi ở nguồn thì timestamp của dòng vẫn cũ.
 - **Cách sửa:** Đo freshness bằng `etl.ingest_log.loaded_at`, nơi mỗi lần chạy đều ghi một dòng cho từng bảng, kể cả batch không có dòng mới.
+
+## 7. dbt test xanh không đồng nghĩa khớp hệ thống cũ
+
+- **Triệu chứng:** Ca 1, `make dbt-build` xanh nhưng `daily_revenue` và
+  `cumulative_revenue` lệch theo ngày.
+- **Nguyên nhân:** Test dbt xác nhận tổng doanh thu, không xác nhận phân bổ
+  doanh thu trên từng khóa ngày.
+- **Cách sửa:** Đối soát theo nhóm và từng dòng; tự động chạy reconciliation
+  sau mỗi lần dbt build thành công.
+
+## 8. Tránh tên file DAG trùng tên package
+
+- **Triệu chứng:** Airflow có thể báo `ImportError` hoặc import nhầm module khi
+  phân giải import của DAG.
+- **Nguyên nhân:** Thư mục `dags/` nằm trên `sys.path`; file DAG trùng tên
+  package/module dùng chung có thể che khuất module cần import.
+- **Cách sửa:** Đặt tên file DAG khác tên package. DAG đối soát dùng
+  `reconcile_legacy_vs_dbt.py`, còn code tái sử dụng nằm trong package riêng.
+
+## 9. Lệch do thời điểm cắt dữ liệu không phải lỗi logic
+
+- **Triệu chứng:** Ca 3 cho thấy cả 7 báo cáo có thể lệch nếu batch cũ chạy
+  trên nguồn mới hơn lần ingestion.
+- **Nguyên nhân:** Hai phía được tính từ hai fingerprint nguồn khác nhau; so
+  trực tiếp sẽ tạo FAIL giả.
+- **Cách sửa:** Gắn fingerprint vào batch và raw; nếu snapshot không khớp thì
+  `SKIP` tại L0, chạy lại trên cùng snapshot. Nếu `SKIP` kéo dài, xử lý như
+  sự cố vận hành.

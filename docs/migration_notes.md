@@ -99,7 +99,23 @@ segment khớp trong lần đối chiếu ngày 2026-10-09
 
 ## Trình tự đối soát
 
-Để so sánh cùng một lát cắt dữ liệu: chạy ingestion thành công, chạy
-`make batch`, chạy `make dbt-build`, rồi đối chiếu số dòng/tổng tiền và số khách
-theo segment. Không chạy `simulate` giữa các bước. Kết quả đã lưu tại
+Để so sánh cùng một lát cắt dữ liệu, trước tiên hoàn tất ingestion thành công
+và không chạy `simulate` cho đến khi batch cũ, dbt và reconciliation kết thúc.
+Sau ingestion, có thể chạy tuần tự:
+
+```sh
+make legacy-batch && make dbt-build && make recon
+```
+
+`make legacy-batch` làm mới báo cáo SQL Server và ghi fingerprint; `make
+dbt-build` dựng các mart; `make recon` kiểm tra snapshot rồi so sánh cả 7 báo
+cáo. Nếu fingerprint không khớp, reconciliation trả `SKIP` thay vì so hai lát
+cắt khác nhau.
+
+Trong quy trình Airflow, chỉ cần chạy DAG `simulate_source_activity` trước
+(nếu cần giả lập thay đổi nguồn), sau đó trigger `ingest_legacy`. DAG này phát
+asset raw để `legacy_nightly_batch` và `transform_dbt` chạy; DAG
+`reconciliation` tự kích hoạt khi cả hai asset đầu ra đã sẵn sàng. Không
+trigger trực tiếp reconciliation và không chạy `simulate` giữa ingestion với
+hai nhánh batch/dbt. Kết quả bằng chứng ban đầu đã lưu tại
 [`evidence/dbt-sqlserver-reconciliation.md`](./evidence/dbt-sqlserver-reconciliation.md).
