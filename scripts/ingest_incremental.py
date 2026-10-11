@@ -1,4 +1,5 @@
 """Tải tăng dần một bảng: SQL Server -> Parquet (MinIO) -> Postgres raw, dựa trên watermark rowversion."""
+
 import io
 import os
 import sys
@@ -9,7 +10,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pymssql
 from botocore.exceptions import BotoCoreError, ClientError
-
 from generate_data import get_connection
 from init_minio import get_s3_client
 from load_to_postgres import get_pg_connection
@@ -65,8 +65,7 @@ def guard_delete_ratio(
 def check_schema(src, table: str, cfg: dict) -> None:
     cur = src.cursor()
     cur.execute(
-        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
-        "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = %s",
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = %s",
         (table,),
     )
     source_columns = {row[0] for row in cur.fetchall()}
@@ -80,9 +79,7 @@ def check_schema(src, table: str, cfg: dict) -> None:
             changes.append(f"cột được thêm: {', '.join(added)}")
         if removed:
             changes.append(f"cột bị thiếu: {', '.join(removed)}")
-        raise SchemaDriftError(
-            f"Schema nguồn dbo.{table} đã thay đổi ({'; '.join(changes)})"
-        )
+        raise SchemaDriftError(f"Schema nguồn dbo.{table} đã thay đổi ({'; '.join(changes)})")
 
 
 def get_watermark(pg, table: str) -> int:
@@ -155,9 +152,7 @@ def load_batch(pg, s3, bucket: str, key, table: str, cfg: dict, upper: int) -> N
 def detect_deletes(table: str) -> int:
     cfg = TABLES.get(table)
     if cfg is None:
-        raise ValueError(
-            f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}"
-        )
+        raise ValueError(f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}")
 
     key = cfg["key"]
     deleted_count = 0
@@ -214,14 +209,10 @@ def log_ingest(
         )
 
 
-def ingest_table(
-    table: str, upper: int | None = None, run_id: str = "manual"
-) -> dict[str, str | int | None]:
+def ingest_table(table: str, upper: int | None = None, run_id: str = "manual") -> dict[str, str | int | None]:
     cfg = TABLES.get(table)
     if cfg is None:
-        raise ValueError(
-            f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}"
-        )
+        raise ValueError(f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}")
 
     with get_connection() as src, get_pg_connection() as pg:
         check_schema(src, table, cfg)
@@ -269,10 +260,7 @@ def main() -> int:
         run_id = uuid.uuid4().hex
         for selected_table in tables:
             result = ingest_table(selected_table, upper=upper, run_id=run_id)
-            print(
-                f"[{result['table']}] Đã tải {result['rows']} dòng "
-                f"(rowversion {result['from']}..{result['to']})"
-            )
+            print(f"[{result['table']}] Đã tải {result['rows']} dòng (rowversion {result['from']}..{result['to']})")
     except KeyError as exc:
         print(f"Thiếu biến môi trường {exc}, hãy kiểm tra file .env")
         return 1

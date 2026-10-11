@@ -1,15 +1,17 @@
 """Sinh dữ liệu giả cho hệ thống cũ: khách hàng và sản phẩm."""
+
 import os
 import random
 import sys
 from datetime import datetime, timedelta
+
 import pymssql
 from dotenv import load_dotenv
 from faker import Faker
 
 load_dotenv()
 
-SEED = 42            # cố định để mỗi lần sinh ra cùng một bộ dữ liệu
+SEED = 42  # cố định để mỗi lần sinh ra cùng một bộ dữ liệu
 NUM_CUSTOMERS = 2000
 
 CITIES = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "Huế", "Nha Trang", "Bắc Ninh"]
@@ -25,9 +27,10 @@ CATALOG = {
 VARIANTS = ["Loại 1", "Loại 2", "Loại 3"]
 
 NUM_ORDERS = 20000
-ORDER_START = datetime(2026, 4, 1)   # ngày bắt đầu của dữ liệu đơn hàng
-ORDER_DAYS = 180                      # trải đơn hàng trong 180 ngày
+ORDER_START = datetime(2026, 4, 1)  # ngày bắt đầu của dữ liệu đơn hàng
+ORDER_DAYS = 180  # trải đơn hàng trong 180 ngày
 STATUS_WEIGHTS = {"COMPLETED": 60, "SHIPPED": 10, "PAID": 10, "NEW": 5, "CANCELLED": 15}
+
 
 def get_connection():
     return pymssql.connect(
@@ -75,7 +78,7 @@ def seed_products(conn) -> None:
         for item in items:
             for variant in VARIANTS:
                 price = int(round(random.uniform(low, high), -3))  # làm tròn đến nghìn đồng
-                is_active = 0 if random.random() < 0.05 else 1      # ~5% ngừng bán
+                is_active = 0 if random.random() < 0.05 else 1  # ~5% ngừng bán
                 rows.append((f"{item} {variant}", category, price, is_active))
 
     cur.executemany(
@@ -107,9 +110,7 @@ def seed_orders(conn) -> None:
     orders = []  # mỗi phần tử: (customer_id, order_date, status, total_amount, updated_at)
     lines_per_order = []  # song song với orders: danh sách dòng hàng của từng đơn
     for _ in range(NUM_ORDERS):
-        order_date = ORDER_START + timedelta(
-            days=random.randrange(ORDER_DAYS), seconds=random.randrange(86400)
-        )
+        order_date = ORDER_START + timedelta(days=random.randrange(ORDER_DAYS), seconds=random.randrange(86400))
         status = random.choices(statuses, weights)[0]
 
         lines = []
@@ -135,12 +136,12 @@ def seed_orders(conn) -> None:
             item_rows.append((order_id, product_id, qty, price))
 
     cur.executemany(
-        "INSERT INTO dbo.order_items (order_id, product_id, quantity, unit_price) "
-        "VALUES (%s, %s, %s, %s)",
+        "INSERT INTO dbo.order_items (order_id, product_id, quantity, unit_price) VALUES (%s, %s, %s, %s)",
         item_rows,
     )
     conn.commit()
     print(f"Đã thêm {len(orders)} đơn hàng và {len(item_rows)} dòng chi tiết")
+
 
 def main() -> int:
     random.seed(SEED)

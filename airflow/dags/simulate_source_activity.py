@@ -1,4 +1,5 @@
 """Giả lập hoạt động kinh doanh hằng ngày ở hệ thống cũ (chỉ dùng trong lab)."""
+
 import pendulum
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import dag
@@ -6,7 +7,7 @@ from airflow.sdk import dag
 
 @dag(
     dag_id="simulate_source_activity",
-    schedule="30 0 * * *",          # 00:30, trước ingest_legacy lúc 01:00
+    schedule="30 0 * * *",  # 00:30, trước ingest_legacy lúc 01:00
     start_date=pendulum.datetime(2026, 1, 1, tz="Asia/Ho_Chi_Minh"),
     catchup=False,
     max_active_runs=1,

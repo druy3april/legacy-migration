@@ -22,9 +22,7 @@ DAILY_COLS = ["revenue_date", "order_count", "gross_revenue"]
 
 
 def daily(rows):
-    return Dataset(DAILY_COLS, [
-        {"revenue_date": d, "order_count": c, "gross_revenue": Decimal(v)} for d, c, v in rows
-    ])
+    return Dataset(DAILY_COLS, [{"revenue_date": d, "order_count": c, "gross_revenue": Decimal(v)} for d, c, v in rows])
 
 
 class DailyRevenueTests(unittest.TestCase):
@@ -41,8 +39,9 @@ class DailyRevenueTests(unittest.TestCase):
 
     def test_driver_types_are_normalized(self):
         # pymssql có thể trả datetime/float, psycopg trả date/Decimal: phải coi là bằng nhau
-        legacy = Dataset(DAILY_COLS, [{"revenue_date": datetime(2026, 4, 1, 0, 0),
-                                       "order_count": 3, "gross_revenue": 100.1}])
+        legacy = Dataset(
+            DAILY_COLS, [{"revenue_date": datetime(2026, 4, 1, 0, 0), "order_count": 3, "gross_revenue": 100.1}]
+        )
         new = daily([(date(2026, 4, 1), 3, "100.10")])
         self.assertEqual(reconcile(self.spec, legacy, new).status, PASS)
 
@@ -87,10 +86,8 @@ class SegmentTests(unittest.TestCase):
 
     def test_segment_distribution_change_is_reported_by_group(self):
         cols = ["customer_id", "segment"]
-        legacy = Dataset(cols, [{"customer_id": 1, "segment": "VIP"},
-                                {"customer_id": 2, "segment": "DORMANT"}])
-        new = Dataset(cols, [{"customer_id": 1, "segment": "VIP"},
-                             {"customer_id": 2, "segment": "VIP"}])
+        legacy = Dataset(cols, [{"customer_id": 1, "segment": "VIP"}, {"customer_id": 2, "segment": "DORMANT"}])
+        new = Dataset(cols, [{"customer_id": 1, "segment": "VIP"}, {"customer_id": 2, "segment": "VIP"}])
         outcome = reconcile(self.spec, legacy, new)
         group = by_level(outcome, "L3_group")[0]
         self.assertEqual(group.status, FAIL)
@@ -108,8 +105,13 @@ class TopProductsTests(unittest.TestCase):
     cols = ["category", "rank_in_category", "product_id", "product_name", "revenue"]
 
     def row(self, rank, pid, revenue):
-        return {"category": "Điện tử", "rank_in_category": rank, "product_id": pid,
-                "product_name": f"SP {pid}", "revenue": Decimal(revenue)}
+        return {
+            "category": "Điện tử",
+            "rank_in_category": rank,
+            "product_id": pid,
+            "product_name": f"SP {pid}",
+            "revenue": Decimal(revenue),
+        }
 
     def test_tie_on_revenue_is_warning_not_failure(self):
         legacy = Dataset(self.cols, [self.row(1, 10, "500"), self.row(2, 11, "300")])
@@ -133,11 +135,13 @@ class PivotTests(unittest.TestCase):
         self.assertEqual(reconcile(self.spec, Dataset(cols, rows), Dataset(cols, rows)).status, PASS)
 
     def test_null_is_not_zero_and_month_columns_are_compared(self):
-        legacy = Dataset(["category", "2026-04", "2026-05"],
-                         [{"category": "A", "2026-04": Decimal("1.00"), "2026-05": None}])
-        new = Dataset(["category", "2026-04", "2026-05", "2026-06"],
-                      [{"category": "A", "2026-04": Decimal("1.00"), "2026-05": Decimal("0"),
-                        "2026-06": None}])
+        legacy = Dataset(
+            ["category", "2026-04", "2026-05"], [{"category": "A", "2026-04": Decimal("1.00"), "2026-05": None}]
+        )
+        new = Dataset(
+            ["category", "2026-04", "2026-05", "2026-06"],
+            [{"category": "A", "2026-04": Decimal("1.00"), "2026-05": Decimal("0"), "2026-06": None}],
+        )
         outcome = reconcile(self.spec, legacy, new)
         s = statuses(outcome)
         self.assertEqual(s[("L1_row_count", "tập cột tháng")], FAIL)

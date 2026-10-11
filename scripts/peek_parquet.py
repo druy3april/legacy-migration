@@ -1,10 +1,10 @@
 """Đọc một file Parquet trên MinIO và in vài dòng để kiểm tra."""
+
 import io
 import os
 import sys
 
 import pyarrow.parquet as pq
-
 from init_minio import get_s3_client
 
 

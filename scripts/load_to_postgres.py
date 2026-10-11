@@ -1,4 +1,5 @@
 """Đọc file Parquet trên MinIO và nạp (upsert) vào bảng raw.customers trong Postgres."""
+
 import io
 import os
 import sys
@@ -6,7 +7,6 @@ import sys
 import psycopg
 import pyarrow.parquet as pq
 from botocore.exceptions import BotoCoreError, ClientError
-
 from init_minio import get_s3_client
 
 KEY = "raw/customers/full/customers.parquet"

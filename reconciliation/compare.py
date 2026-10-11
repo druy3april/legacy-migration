@@ -7,6 +7,7 @@ Năm cấp độ:
   L4_row        từng khóa: chỉ có ở một phía, hoặc giá trị khác
   L5_checksum   băm các dòng đã chuẩn hóa (toàn bảng + 16 bucket)
 """
+
 import hashlib
 import unicodedata
 from collections import defaultdict
@@ -19,7 +20,7 @@ from reconciliation.specs import ReportSpec
 
 CENT = Decimal("0.01")
 DEFAULT_TOLERANCE = Decimal("0.01")
-MAX_DETAILS = 20        # số nhóm/dòng lệch tối đa ghi vào details
+MAX_DETAILS = 20  # số nhóm/dòng lệch tối đa ghi vào details
 BUCKETS = 16
 
 PASS, WARN, FAIL, SKIP = "PASS", "WARN", "FAIL", "SKIP"
@@ -48,7 +49,7 @@ class CheckResult:
 class RowDiff:
     report: str
     key: dict[str, Any]
-    diff_type: str          # only_in_legacy | only_in_new | value | tie | duplicate_key
+    diff_type: str  # only_in_legacy | only_in_new | value | tie | duplicate_key
     column: str | None = None
     legacy_value: Any = None
     new_value: Any = None
@@ -72,6 +73,7 @@ def worst(statuses: list[str]) -> str:
 
 # ---------------------------------------------------------------- chuẩn hóa
 
+
 def normalize_value(kind: str, value: Any) -> Any:
     if value is None:
         return None
@@ -92,10 +94,7 @@ def normalize_value(kind: str, value: Any) -> Any:
 
 
 def normalize_rows(spec: ReportSpec, rows: list[dict]) -> list[dict]:
-    return [
-        {c.name: normalize_value(c.kind, row.get(c.name)) for c in spec.columns}
-        for row in rows
-    ]
+    return [{c.name: normalize_value(c.kind, row.get(c.name)) for c in spec.columns} for row in rows]
 
 
 def unpivot(dataset: Dataset, id_column: str) -> tuple[list[dict], list[str]]:
@@ -123,12 +122,17 @@ def _fmt(value: Any) -> str | None:
 
 # ---------------------------------------------------------------- các cấp so sánh
 
+
 def check_row_count(spec: ReportSpec, legacy: list[dict], new: list[dict]) -> CheckResult:
     diff = abs(len(legacy) - len(new))
     return CheckResult(
-        spec.name, "L1_row_count", "count(*)",
+        spec.name,
+        "L1_row_count",
+        "count(*)",
         PASS if diff == 0 else FAIL,
-        str(len(legacy)), str(len(new)), diff,
+        str(len(legacy)),
+        str(len(new)),
+        diff,
     )
 
 
@@ -145,9 +149,7 @@ def _aggregates(kind: str, values: list[Any]) -> dict[str, Any]:
     return aggs
 
 
-def check_aggregates(
-    spec: ReportSpec, legacy: list[dict], new: list[dict], tolerance: Decimal
-) -> list[CheckResult]:
+def check_aggregates(spec: ReportSpec, legacy: list[dict], new: list[dict], tolerance: Decimal) -> list[CheckResult]:
     results = []
     for col in spec.value_columns:
         if col.name in spec.tie_columns:
@@ -158,19 +160,23 @@ def check_aggregates(
             new_value = new_aggs[agg_name]
             kind = col.kind if agg_name in ("sum", "min", "max") else "int"
             ok = values_equal(kind, old_value, new_value, tolerance)
-            results.append(CheckResult(
-                spec.name, "L2_aggregate", f"{agg_name}({col.name})",
-                PASS if ok else FAIL, _fmt(old_value), _fmt(new_value),
-                0 if ok else 1,
-                tolerance if kind == "money" else None,
-            ))
+            results.append(
+                CheckResult(
+                    spec.name,
+                    "L2_aggregate",
+                    f"{agg_name}({col.name})",
+                    PASS if ok else FAIL,
+                    _fmt(old_value),
+                    _fmt(new_value),
+                    0 if ok else 1,
+                    tolerance if kind == "money" else None,
+                )
+            )
     return results
 
 
 def _group_stats(spec: ReportSpec, rows: list[dict]) -> dict[str, dict[str, Any]]:
-    stats: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {"rows": 0, **{m: Decimal("0") for m in spec.measures}}
-    )
+    stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"rows": 0, **{m: Decimal("0") for m in spec.measures}})
     for row in rows:
         group = spec.group_by(row)
         stats[group]["rows"] += 1
@@ -180,9 +186,7 @@ def _group_stats(spec: ReportSpec, rows: list[dict]) -> dict[str, dict[str, Any]
     return stats
 
 
-def check_groups(
-    spec: ReportSpec, legacy: list[dict], new: list[dict], tolerance: Decimal
-) -> CheckResult:
+def check_groups(spec: ReportSpec, legacy: list[dict], new: list[dict], tolerance: Decimal) -> CheckResult:
     if spec.group_by is None:
         return CheckResult(spec.name, "L3_group", "không cấu hình nhóm", SKIP)
     old_stats, new_stats = _group_stats(spec, legacy), _group_stats(spec, new)
@@ -191,20 +195,28 @@ def check_groups(
         old = old_stats.get(group)
         cur = new_stats.get(group)
         same = (
-            old is not None and cur is not None
+            old is not None
+            and cur is not None
             and old["rows"] == cur["rows"]
             and all(values_equal("money", old[m], cur[m], tolerance) for m in spec.measures)
         )
         if not same:
-            mismatched.append({
-                "group": group,
-                "legacy": {k: _fmt(v) for k, v in (old or {}).items()},
-                "new": {k: _fmt(v) for k, v in (cur or {}).items()},
-            })
+            mismatched.append(
+                {
+                    "group": group,
+                    "legacy": {k: _fmt(v) for k, v in (old or {}).items()},
+                    "new": {k: _fmt(v) for k, v in (cur or {}).items()},
+                }
+            )
     return CheckResult(
-        spec.name, "L3_group", spec.group_label,
+        spec.name,
+        "L3_group",
+        spec.group_label,
         PASS if not mismatched else FAIL,
-        str(len(old_stats)), str(len(new_stats)), len(mismatched), tolerance,
+        str(len(old_stats)),
+        str(len(new_stats)),
+        len(mismatched),
+        tolerance,
         {"mismatched_groups": mismatched[:MAX_DETAILS]} if mismatched else None,
     )
 
@@ -240,16 +252,12 @@ def check_rows(
             diffs.append(RowDiff(spec.name, key_dict, "only_in_new"))
             bad_keys.add(key)
             continue
-        changed = [
-            c for c in spec.value_columns
-            if not values_equal(c.kind, old[c.name], cur[c.name], tolerance)
-        ]
+        changed = [c for c in spec.value_columns if not values_equal(c.kind, old[c.name], cur[c.name], tolerance)]
         if not changed:
             continue
         is_tie = bool(spec.tie_columns) and {c.name for c in changed} <= set(spec.tie_columns)
         for c in changed:
-            diffs.append(RowDiff(spec.name, key_dict, "tie" if is_tie else "value",
-                                 c.name, old[c.name], cur[c.name]))
+            diffs.append(RowDiff(spec.name, key_dict, "tie" if is_tie else "value", c.name, old[c.name], cur[c.name]))
         (tie_keys if is_tie else bad_keys).add(key)
 
     has_duplicates = any(d.diff_type == "duplicate_key" for d in diffs)
@@ -266,9 +274,15 @@ def check_rows(
             counts[d.diff_type] += 1
         details = {"by_type": dict(counts)}
     result = CheckResult(
-        spec.name, "L4_row", "so từng khóa", status,
-        str(len(old_index)), str(len(new_index)),
-        len(bad_keys) + len(tie_keys), tolerance, details,
+        spec.name,
+        "L4_row",
+        "so từng khóa",
+        status,
+        str(len(old_index)),
+        str(len(new_index)),
+        len(bad_keys) + len(tie_keys),
+        tolerance,
+        details,
     )
     return result, diffs
 
@@ -287,13 +301,8 @@ def table_checksum(spec: ReportSpec, rows: list[dict]) -> tuple[str, dict[int, s
     per_bucket: dict[int, list[str]] = defaultdict(list)
     for row in rows:
         per_bucket[_bucket(spec, row)].append(_row_hash(spec, row))
-    buckets = {
-        b: hashlib.md5("\n".join(sorted(h)).encode()).hexdigest()
-        for b, h in per_bucket.items()
-    }
-    total = hashlib.md5(
-        "\n".join(f"{b}:{buckets[b]}" for b in sorted(buckets)).encode()
-    ).hexdigest()
+    buckets = {b: hashlib.md5("\n".join(sorted(h)).encode()).hexdigest() for b, h in per_bucket.items()}
+    total = hashlib.md5("\n".join(f"{b}:{buckets[b]}" for b in sorted(buckets)).encode()).hexdigest()
     return total, buckets
 
 
@@ -302,13 +311,19 @@ def check_checksum(spec: ReportSpec, legacy: list[dict], new: list[dict], row_st
     new_total, new_buckets = table_checksum(spec, new)
     if old_total == new_total:
         return CheckResult(spec.name, "L5_checksum", "md5 dòng chuẩn hóa", PASS, old_total, new_total)
-    bad = sorted(b for b in set(old_buckets) | set(new_buckets)
-                 if old_buckets.get(b) != new_buckets.get(b))
+    bad = sorted(b for b in set(old_buckets) | set(new_buckets) if old_buckets.get(b) != new_buckets.get(b))
     # Checksum so tuyệt đối; nếu L4 đã chấp nhận (lệch trong ngưỡng / hòa hạng) thì chỉ cảnh báo
     status = WARN if row_status in (PASS, WARN) else FAIL
     return CheckResult(
-        spec.name, "L5_checksum", "md5 dòng chuẩn hóa", status,
-        old_total, new_total, len(bad), None, {"mismatched_buckets": bad},
+        spec.name,
+        "L5_checksum",
+        "md5 dòng chuẩn hóa",
+        status,
+        old_total,
+        new_total,
+        len(bad),
+        None,
+        {"mismatched_buckets": bad},
     )
 
 
@@ -317,17 +332,25 @@ def check_pivot_columns(spec: ReportSpec, legacy_cols: list[str], new_cols: list
     only_new = sorted(set(new_cols) - set(legacy_cols))
     diff = len(only_old) + len(only_new)
     return CheckResult(
-        spec.name, "L1_row_count", "tập cột tháng",
+        spec.name,
+        "L1_row_count",
+        "tập cột tháng",
         PASS if diff == 0 else FAIL,
-        ",".join(legacy_cols), ",".join(new_cols), diff, None,
+        ",".join(legacy_cols),
+        ",".join(new_cols),
+        diff,
+        None,
         {"only_in_legacy": only_old, "only_in_new": only_new} if diff else None,
     )
 
 
 # ---------------------------------------------------------------- điểm vào
 
+
 def reconcile(
-    spec: ReportSpec, legacy: Dataset, new: Dataset,
+    spec: ReportSpec,
+    legacy: Dataset,
+    new: Dataset,
     tolerance: Decimal = DEFAULT_TOLERANCE,
 ) -> ReportOutcome:
     outcome = ReportOutcome(spec.name)

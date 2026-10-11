@@ -1,10 +1,12 @@
 """Đối soát báo cáo cũ với mart dbt, chạy khi CẢ HAI phía vừa làm mới xong."""
+
 import logging
 from datetime import timedelta
 
 import pendulum
 from airflow.exceptions import AirflowFailException
 from airflow.sdk import dag, task
+
 from common.alerts import notify_failure
 from common.assets import LEGACY_REPORTS, WAREHOUSE_MARTS
 
@@ -64,8 +66,7 @@ def reconciliation():
         if "FAIL" in by_status:
             # Không retry: lệch số liệu không tự hết khi chạy lại -> gửi cảnh báo ngay
             raise AirflowFailException(
-                f"Đối soát FAIL: {', '.join(by_status['FAIL'])}. "
-                "Xem recon.results / recon.row_diffs theo run_id này."
+                f"Đối soát FAIL: {', '.join(by_status['FAIL'])}. Xem recon.results / recon.row_diffs theo run_id này."
             )
         if set(by_status) == {"SKIP"}:
             LOGGER.warning("Toàn bộ báo cáo SKIP vì snapshot lệch: hôm nay chưa được kiểm chứng")

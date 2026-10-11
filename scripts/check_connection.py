@@ -1,4 +1,5 @@
 """Kiểm tra Python kết nối được tới SQL Server (hệ thống cũ)."""
+
 import os
 import sys
 
