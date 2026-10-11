@@ -1,9 +1,10 @@
 """Đối soát báo cáo cũ (SQL Server) với mart dbt (Postgres).
 
-    python -m reconciliation.run                 # tất cả báo cáo
-    python -m reconciliation.run daily_revenue   # một báo cáo
-    python -m reconciliation.run --ignore-snapshot   # so dù snapshot lệch (chỉ để debug)
+python -m reconciliation.run                 # tất cả báo cáo
+python -m reconciliation.run daily_revenue   # một báo cáo
+python -m reconciliation.run --ignore-snapshot   # so dù snapshot lệch (chỉ để debug)
 """
+
 import argparse
 import os
 import sys
@@ -40,18 +41,21 @@ def check_snapshot() -> dict:
         batch = latest_legacy_batch(pg)
         current = raw_fingerprint(pg)
     if batch is None:
-        return {"ok": False, "batch_id": None,
-                "reason": "Chưa có batch cũ nào được ghi nhận (chạy make legacy-batch)"}
+        return {"ok": False, "batch_id": None, "reason": "Chưa có batch cũ nào được ghi nhận (chạy make legacy-batch)"}
     if not batch["stable"]:
-        return {"ok": False, "batch_id": batch["batch_id"],
-                "reason": "Batch cũ gần nhất chạy khi nguồn đang thay đổi"}
+        return {"ok": False, "batch_id": batch["batch_id"], "reason": "Batch cũ gần nhất chạy khi nguồn đang thay đổi"}
     mismatched = {
         t: {"legacy_batch": batch["fingerprint"].get(t), "raw": fp}
-        for t, fp in current.items() if batch["fingerprint"].get(t) != fp
+        for t, fp in current.items()
+        if batch["fingerprint"].get(t) != fp
     }
     if mismatched:
-        return {"ok": False, "batch_id": batch["batch_id"],
-                "reason": "Snapshot lệch giữa batch cũ và raw", "tables": mismatched}
+        return {
+            "ok": False,
+            "batch_id": batch["batch_id"],
+            "reason": "Snapshot lệch giữa batch cũ và raw",
+            "tables": mismatched,
+        }
     return {"ok": True, "batch_id": batch["batch_id"], "reason": "Snapshot khớp"}
 
 
@@ -60,10 +64,18 @@ def run_report(name: str, run_id: str, snapshot: dict, ignore_snapshot: bool = F
     batch_id = snapshot.get("batch_id")
 
     if not snapshot["ok"] and not ignore_snapshot:
-        outcome = ReportOutcome(name, [CheckResult(
-            name, "L0_snapshot", "cùng thời điểm cắt", SKIP,
-            details={k: v for k, v in snapshot.items() if k != "ok"},
-        )])
+        outcome = ReportOutcome(
+            name,
+            [
+                CheckResult(
+                    name,
+                    "L0_snapshot",
+                    "cùng thời điểm cắt",
+                    SKIP,
+                    details={k: v for k, v in snapshot.items() if k != "ok"},
+                )
+            ],
+        )
     else:
         try:
             columns = None if spec.pivot_id else spec.column_names
@@ -73,9 +85,18 @@ def run_report(name: str, run_id: str, snapshot: dict, ignore_snapshot: bool = F
                 new = fetch_dataset(pg, spec.new_table, columns)
             outcome = reconcile(spec, legacy, new, TOLERANCE)
         except Exception as exc:  # lỗi đọc bảng cũng là kết quả đối soát FAIL
-            outcome = ReportOutcome(name, [CheckResult(
-                name, "L0_error", type(exc).__name__, FAIL, details={"error": str(exc)[:1000]},
-            )])
+            outcome = ReportOutcome(
+                name,
+                [
+                    CheckResult(
+                        name,
+                        "L0_error",
+                        type(exc).__name__,
+                        FAIL,
+                        details={"error": str(exc)[:1000]},
+                    )
+                ],
+            )
 
     with get_pg_connection() as pg:
         write_outcome(pg, run_id, name, batch_id, outcome.results, outcome.diffs)
@@ -104,8 +125,9 @@ def main() -> int:
         for table, sides in snapshot["tables"].items():
             print(f"  {table}: batch cũ={sides['legacy_batch']} raw={sides['raw']}")
 
-    summaries = [run_report(name, args.run_id, snapshot, args.ignore_snapshot)
-                 for name in (args.reports or list(REPORTS))]
+    summaries = [
+        run_report(name, args.run_id, snapshot, args.ignore_snapshot) for name in (args.reports or list(REPORTS))
+    ]
 
     print(f"\nrun_id = {args.run_id}")
     print(f"{'Báo cáo':<28}{'Trạng thái':<12}{'Dòng lệch':>10}  Kiểm tra lỗi")

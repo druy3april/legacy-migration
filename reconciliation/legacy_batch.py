@@ -1,10 +1,11 @@
 """Chạy job ban đêm của hệ thống cũ và ghi lại snapshot nguồn mà job đã dùng.
 
-    python -m reconciliation.legacy_batch [batch_id]
+python -m reconciliation.legacy_batch [batch_id]
 """
+
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from reconciliation.db import (
     get_legacy_connection,
@@ -21,22 +22,19 @@ class LegacyBatchUnstable(RuntimeError):
 def run_legacy_batch(batch_id: str) -> dict:
     with get_legacy_connection() as mssql:
         before = legacy_fingerprint(mssql)
-        started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
         cur = mssql.cursor()
         cur.execute("EXEC dbo.sp_run_nightly_batch")
         mssql.commit()
-        finished_at = datetime.now(timezone.utc)
+        finished_at = datetime.now(UTC)
         after = legacy_fingerprint(mssql)
 
     with get_pg_connection() as pg:
         stable = record_legacy_batch(pg, batch_id, started_at, finished_at, before, after)
 
     if not stable:
-        raise LegacyBatchUnstable(
-            f"Nguồn thay đổi trong lúc chạy batch {batch_id}: trước={before}, sau={after}"
-        )
-    return {"batch_id": batch_id, "seconds": (finished_at - started_at).total_seconds(),
-            "fingerprint": after}
+        raise LegacyBatchUnstable(f"Nguồn thay đổi trong lúc chạy batch {batch_id}: trước={before}, sau={after}")
+    return {"batch_id": batch_id, "seconds": (finished_at - started_at).total_seconds(), "fingerprint": after}
 
 
 def main() -> int:

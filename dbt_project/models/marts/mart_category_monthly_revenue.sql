@@ -1,6 +1,8 @@
 -- Thay cho dbo.sp_refresh_category_monthly_revenue (SQL động EXEC(@sql) + PIVOT)
 -- Danh sách tháng lấy từ MỌI đơn hàng (kể cả NEW/CANCELLED), giống @cols trong procedure,
 -- nên tháng chỉ có đơn hủy vẫn có cột, giá trị NULL.
+-- SQL sinh bằng vòng lặp Jinja: bỏ qua luật thụt lề LT02 cho file này
+-- noqa: disable=LT02
 {%- set months_query -%}
     select distinct to_char(order_date, 'YYYY-MM') as ym
     from {{ ref('stg_orders') }}

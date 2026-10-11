@@ -3,11 +3,11 @@
 -- nên model table là cách chuyển đúng nhất. Xem bài tập incremental trong migration_notes.md
 select
     oi.product_id,
-    sum(oi.quantity)::int                as units_sold,
-    sum(oi.line_amount)::numeric(18, 2)  as revenue,
-    max(o.order_date)::date              as last_sold_date
+    sum(oi.quantity)::int as units_sold,
+    sum(oi.line_amount)::numeric(18, 2) as revenue,
+    max(o.order_date)::date as last_sold_date
 from {{ ref('stg_order_items') }} as oi
-join {{ ref('stg_orders') }} as o
-    on o.order_id = oi.order_id
+inner join {{ ref('stg_orders') }} as o
+    on oi.order_id = o.order_id
 where {{ in_list('o.status', var('paid_statuses')) }}
 group by oi.product_id

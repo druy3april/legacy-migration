@@ -1,4 +1,5 @@
 """Giả lập thay đổi ở hệ thống nguồn: sửa thành phố một số khách và thêm khách mới."""
+
 import argparse
 import random
 import sys
@@ -6,7 +7,6 @@ import uuid
 
 import pymssql
 from faker import Faker
-
 from generate_data import CITIES, get_connection
 
 
@@ -19,16 +19,14 @@ def non_negative_int(value: str) -> int:
 
 def update_orders(cur, count: int) -> int:
     cur.execute(
-        "SELECT TOP (%s) order_id FROM dbo.orders "
-        "WHERE status = 'NEW' ORDER BY NEWID()",
+        "SELECT TOP (%s) order_id FROM dbo.orders WHERE status = 'NEW' ORDER BY NEWID()",
         (count,),
     )
     order_ids = [row[0] for row in cur.fetchall()]
     for order_id in order_ids:
         for status in ("PAID", "SHIPPED", "COMPLETED"):
             cur.execute(
-                "UPDATE dbo.orders SET status = %s, updated_at = SYSUTCDATETIME() "
-                "WHERE order_id = %s",
+                "UPDATE dbo.orders SET status = %s, updated_at = SYSUTCDATETIME() WHERE order_id = %s",
                 (status, order_id),
             )
     return len(order_ids)
@@ -59,8 +57,7 @@ def insert_orders(cur, count: int) -> tuple[int, int]:
         lines = random.sample(products, k=random.randint(1, min(3, len(products))))
         for product_id, unit_price in lines:
             cur.execute(
-                "INSERT INTO dbo.order_items "
-                "(order_id, product_id, quantity, unit_price) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO dbo.order_items (order_id, product_id, quantity, unit_price) VALUES (%s, %s, %s, %s)",
                 (order_id, product_id, random.randint(1, 4), unit_price),
             )
             item_count += 1
@@ -77,15 +74,13 @@ def insert_orders(cur, count: int) -> tuple[int, int]:
 
 def delete_order_items(cur, count: int) -> int:
     cur.execute(
-        "SELECT TOP (%s) order_id FROM dbo.order_items "
-        "GROUP BY order_id ORDER BY NEWID()",
+        "SELECT TOP (%s) order_id FROM dbo.order_items GROUP BY order_id ORDER BY NEWID()",
         (count,),
     )
     order_ids = [row[0] for row in cur.fetchall()]
     for order_id in order_ids:
         cur.execute(
-            "SELECT TOP (1) order_item_id FROM dbo.order_items "
-            "WHERE order_id = %s ORDER BY NEWID()",
+            "SELECT TOP (1) order_item_id FROM dbo.order_items WHERE order_id = %s ORDER BY NEWID()",
             (order_id,),
         )
         item_id = cur.fetchone()[0]
@@ -152,8 +147,7 @@ def main() -> int:
 
             for _ in range(args.insert):
                 cur.execute(
-                    "INSERT INTO dbo.customers (full_name, email, city) "
-                    "VALUES (%s, %s, %s)",
+                    "INSERT INTO dbo.customers (full_name, email, city) VALUES (%s, %s, %s)",
                     (
                         fake.name(),
                         f"moi_{uuid.uuid4().hex[:10]}@example.com",
@@ -172,10 +166,7 @@ def main() -> int:
     print(f"Đã sửa {len(customer_ids)} khách hàng: {customer_ids}")
     print(f"Đã thêm {args.insert} khách hàng mới")
     print(f"Đã chuyển trạng thái {updated_orders}/{args.order_update} đơn NEW")
-    print(
-        f"Đã thêm {inserted_orders} đơn hàng mới và "
-        f"{inserted_items} dòng chi tiết"
-    )
+    print(f"Đã thêm {inserted_orders} đơn hàng mới và {inserted_items} dòng chi tiết")
     print(f"Đã xóa một dòng chi tiết của {deleted_orders}/{args.item_delete} đơn hàng")
     return 0
 

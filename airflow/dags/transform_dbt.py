@@ -1,4 +1,5 @@
 """Run dbt after ingest_legacy updates the raw schema."""
+
 from datetime import timedelta
 
 import pendulum
@@ -35,10 +36,7 @@ DBT_PATH_ARGS = "--target-path /tmp/dbt_target --log-path /tmp/dbt_logs"
 def transform_dbt():
     freshness = BashOperator(
         task_id="dbt_source_freshness",
-        bash_command=(
-            f"cd {DBT_DIR} && {DBT} source freshness "
-            f"--profiles-dir {DBT_DIR} {DBT_PATH_ARGS}"
-        ),
+        bash_command=(f"cd {DBT_DIR} && {DBT} source freshness --profiles-dir {DBT_DIR} {DBT_PATH_ARGS}"),
         env=DBT_ENV,
         append_env=True,
     )

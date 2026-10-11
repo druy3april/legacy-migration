@@ -1,4 +1,5 @@
 """Daily incremental ingestion from the legacy SQL Server into the warehouse."""
+
 import logging
 from datetime import timedelta
 from typing import Any
@@ -56,6 +57,8 @@ def ingest_legacy():
     ) -> list[dict[str, str | int]]:
         from ingest_incremental import (
             DeleteGuardError,
+        )
+        from ingest_incremental import (
             detect_deletes as mark_deleted_rows,
         )
 
@@ -75,21 +78,12 @@ def ingest_legacy():
         return results
 
     @task(outlets=[WAREHOUSE_RAW])
-    def summarize(
-        results: list[dict[str, Any]], deletion_results: list[dict[str, Any]]
-    ) -> None:
-        row_counts = {
-            str(result["table"]): int(result["rows"])
-            for result in results
-        }
+    def summarize(results: list[dict[str, Any]], deletion_results: list[dict[str, Any]]) -> None:
+        row_counts = {str(result["table"]): int(result["rows"]) for result in results}
         total_rows = sum(row_counts.values())
-        deleted_counts = {
-            str(result["table"]): int(result["deleted"])
-            for result in deletion_results
-        }
+        deleted_counts = {str(result["table"]): int(result["deleted"]) for result in deletion_results}
         LOGGER.info(
-            "Ingestion run completed: rows_by_table=%s total_rows=%d "
-            "deleted_by_table=%s",
+            "Ingestion run completed: rows_by_table=%s total_rows=%d deleted_by_table=%s",
             row_counts,
             total_rows,
             deleted_counts,

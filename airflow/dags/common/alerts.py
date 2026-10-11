@@ -1,4 +1,5 @@
 """Failure alerts shared by Airflow DAGs."""
+
 import logging
 import os
 import smtplib
@@ -15,11 +16,7 @@ def notify_failure(context: dict[str, Any]) -> None:
     exception = context.get("exception")
     dag_id = context.get("dag").dag_id if context.get("dag") else "unknown"
     task_id = task_instance.task_id if task_instance else "unknown"
-    message = (
-        f"Airflow task failed: dag={dag_id}, "
-        f"task={task_id}, "
-        f"run_id={context.get('run_id')}, error={exception}"
-    )
+    message = f"Airflow task failed: dag={dag_id}, task={task_id}, run_id={context.get('run_id')}, error={exception}"
     LOGGER.error(message)
 
     sender = os.getenv("ALERT_EMAIL_FROM", "").strip()

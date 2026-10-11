@@ -1,13 +1,15 @@
-WITH expected AS (
-    SELECT SUM(total_amount)::numeric(18, 2) AS revenue
-    FROM {{ ref('stg_orders') }}
-    WHERE status <> 'CANCELLED'
+with expected as (
+    select sum(total_amount)::numeric(18, 2) as revenue
+    from {{ ref('stg_orders') }}
+    where status <> 'CANCELLED'
 ),
-actual AS (
-    SELECT SUM(gross_revenue)::numeric(18, 2) AS revenue
-    FROM {{ ref('mart_daily_revenue') }}
+
+actual as (
+    select sum(gross_revenue)::numeric(18, 2) as revenue
+    from {{ ref('mart_daily_revenue') }}
 )
-SELECT 1
-FROM expected
-CROSS JOIN actual
-WHERE expected.revenue IS DISTINCT FROM actual.revenue
+
+select 1
+from expected
+cross join actual
+where expected.revenue is distinct from actual.revenue

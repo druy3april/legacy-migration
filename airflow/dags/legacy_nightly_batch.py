@@ -3,10 +3,12 @@
 Chạy ngay sau khi ingest_legacy xong (cùng trạng thái nguồn với raw), ghi snapshot nguồn
 vào recon.legacy_batches rồi phát Asset LEGACY_REPORTS.
 """
+
 from datetime import timedelta
 
 import pendulum
 from airflow.sdk import dag, task
+
 from common.alerts import notify_failure
 from common.assets import LEGACY_REPORTS, WAREHOUSE_RAW
 

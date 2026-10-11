@@ -1,4 +1,5 @@
 """Tải toàn bộ một bảng từ SQL Server, ghi thành file Parquet lên MinIO."""
+
 import io
 import os
 import sys
@@ -7,7 +8,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pymssql
 from botocore.exceptions import BotoCoreError, ClientError
-
 from generate_data import get_connection
 from init_minio import get_s3_client
 

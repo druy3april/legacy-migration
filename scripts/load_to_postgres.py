@@ -1,4 +1,5 @@
 """Đọc file Parquet trên MinIO và nạp (upsert) vào bảng raw.customers trong Postgres."""
+
 import io
 import os
 import sys
@@ -6,7 +7,6 @@ import sys
 import psycopg
 import pyarrow.parquet as pq
 from botocore.exceptions import BotoCoreError, ClientError
-
 from init_minio import get_s3_client
 
 KEY = "raw/customers/full/customers.parquet"
@@ -55,7 +55,7 @@ def main() -> int:
         print(f"Không đọc được file từ MinIO: {exc}")
         return 1
 
-    rows = list(zip(*(table[col].to_pylist() for col in COLUMNS)))
+    rows = list(zip(*(table[col].to_pylist() for col in COLUMNS), strict=True))
     print(f"Đã đọc {len(rows)} dòng từ s3://{bucket}/{KEY}")
 
     try:

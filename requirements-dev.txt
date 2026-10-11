@@ -1,0 +1,4 @@
+# Công cụ phát triển: lint + CI (cài vào .venv và dùng trong GitHub Actions)
+ruff==0.16.8
+sqlfluff==4.4.0
+sqlfluff-templater-dbt==4.4.0

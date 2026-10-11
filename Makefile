@@ -4,10 +4,13 @@ export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase lint ci-local readiness
 
 help:
 	@echo "Legacy migration - cac lenh Make"
+	@echo ""
+	@echo "Lenh chinh: up data wh minio airflow metabase dbt-build legacy-batch recon lint ci-local readiness"
+	@echo "Dùng make <lệnh> để chạy; bên dưới có danh sách lệnh phụ."
 	@echo ""
 	@echo "He thong:"
 	@echo "  make help            Hien thi danh sach lenh"
@@ -149,7 +152,7 @@ test:
 	.venv/bin/python -m unittest discover -s tests -v
 
 # ---- Đối soát (Tuần 5) ----
-RECON = PYTHONPATH=scripts:. python -m reconciliation
+RECON = PYTHONPATH=scripts:. .venv/bin/python -m reconciliation
 REPORT ?=
 
 legacy-batch:            ## chạy job ban đêm cũ + ghi snapshot (thay cho make batch khi đối soát)
@@ -164,3 +167,9 @@ recon-airflow:
 metabase:
 	$(COMPOSE) up -d metabase
 	@echo "Mở http://localhost:$${METABASE_PORT:-3000} (lần đầu Metabase cần 1-2 phút để khởi động)"
+
+# ---- Tuần 6: lint + CI chạy local ----
+lint:                    ## lint Python + SQL (SQLFluff cần Postgres đang chạy: make wh)
+	.venv/bin/ruff check .
+	.venv/bin/ruff format --check .
+	.venv/bin/sqlfluff lint dbt_project/models dbt_project/tests
