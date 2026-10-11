@@ -141,7 +141,7 @@ def load_batch(pg, s3, bucket: str, key, table: str, cfg: dict, upper: int) -> N
         if key is not None:
             body = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
             data = pq.read_table(io.BytesIO(body))
-            rows = list(zip(*(data[col].to_pylist() for col in columns)))
+            rows = list(zip(*(data[col].to_pylist() for col in columns), strict=True))
             cur.executemany(build_upsert_sql(table, cfg["key"], columns), rows)
         cur.execute(
             "UPDATE etl.watermarks SET last_rowversion = %s, last_run_at = now() WHERE table_name = %s",

@@ -227,7 +227,7 @@ def _index(spec: ReportSpec, rows: list[dict], side: str, diffs: list[RowDiff]) 
         key = tuple(row[k] for k in spec.keys)
         if key in index:
             # column ghi phía bị trùng khóa: legacy hoặc new
-            diffs.append(RowDiff(spec.name, dict(zip(spec.keys, key)), "duplicate_key", side))
+            diffs.append(RowDiff(spec.name, dict(zip(spec.keys, key, strict=True)), "duplicate_key", side))
         index[key] = row
     return index
 
@@ -242,7 +242,7 @@ def check_rows(
     tie_keys: set[tuple] = set()
 
     for key in sorted(set(old_index) | set(new_index), key=lambda k: tuple(_fmt(v) or "" for v in k)):
-        key_dict = dict(zip(spec.keys, key))
+        key_dict = dict(zip(spec.keys, key, strict=True))
         old, cur = old_index.get(key), new_index.get(key)
         if cur is None:
             diffs.append(RowDiff(spec.name, key_dict, "only_in_legacy"))

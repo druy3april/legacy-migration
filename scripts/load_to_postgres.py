@@ -55,7 +55,7 @@ def main() -> int:
         print(f"Không đọc được file từ MinIO: {exc}")
         return 1
 
-    rows = list(zip(*(table[col].to_pylist() for col in COLUMNS)))
+    rows = list(zip(*(table[col].to_pylist() for col in COLUMNS), strict=True))
     print(f"Đã đọc {len(rows)} dòng từ s3://{bucket}/{KEY}")
 
     try:

@@ -23,7 +23,7 @@ def fetch_dataset(conn, table: str, columns: list[str] | None = None) -> Dataset
         select_list = "*" if columns is None else ", ".join(columns)
         cur.execute(f"SELECT {select_list} FROM {table}")
         names = [d[0] for d in cur.description]
-        rows = [dict(zip(names, r)) for r in cur.fetchall()]
+        rows = [dict(zip(names, r, strict=True)) for r in cur.fetchall()]
     finally:
         cur.close()
     return Dataset(columns=names, rows=rows)

@@ -131,7 +131,7 @@ def seed_orders(conn) -> None:
     order_ids = [row[0] for row in cur.fetchall()]
 
     item_rows = []
-    for order_id, lines in zip(order_ids, lines_per_order):
+    for order_id, lines in zip(order_ids, lines_per_order, strict=True):
         for product_id, qty, price in lines:
             item_rows.append((order_id, product_id, qty, price))
 
