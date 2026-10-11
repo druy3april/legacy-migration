@@ -173,3 +173,9 @@ lint:                    ## lint Python + SQL (SQLFluff cần Postgres đang ch�
 	.venv/bin/ruff check .
 	.venv/bin/ruff format --check .
 	.venv/bin/sqlfluff lint dbt_project/models dbt_project/tests
+
+ci-local:                ## chạy lại job dbt của CI trên DB riêng ci_test, KHÔNG đụng warehouse thật
+	$(COMPOSE) exec -T postgres bash -c 'dropdb -U "$$POSTGRES_USER" --if-exists ci_test && createdb -U "$$POSTGRES_USER" ci_test'
+	$(COMPOSE) exec -T postgres bash -c 'psql -v ON_ERROR_STOP=1 -q -U "$$POSTGRES_USER" -d ci_test' < warehouse/init.sql
+	$(COMPOSE) exec -T postgres bash -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d ci_test' < ci/seed_sample.sql
+	cd dbt_project && POSTGRES_DB=ci_test ../.venv/bin/dbt build --profiles-dir . --fail-fast
