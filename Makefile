@@ -4,14 +4,52 @@ export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase test
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase
 
 help:
-	@echo "make up    - dung SQL Server va nap file sql/*.sql"
-	@echo "make sql   - mo sqlcmd vao database LegacyRetail"
-	@echo "make ps    - xem trang thai container"
-	@echo "make down  - tat container, giu du lieu"
-	@echo "make reset - tat container va XOA du lieu"
+	@echo "Legacy migration - cac lenh Make"
+	@echo ""
+	@echo "He thong:"
+	@echo "  make help            Hien thi danh sach lenh"
+	@echo "  make env             Tao .env tu .env.example neu chua co"
+	@echo "  make up              Khoi dong SQL Server va nap schema/thu tuc"
+	@echo "  make down            Tat container, giu du lieu"
+	@echo "  make reset           Tat container va xoa volume du lieu"
+	@echo "  make ps              Xem trang thai container"
+	@echo "  make logs            Xem log SQL Server"
+	@echo "  make sql             Mo sqlcmd vao database LegacyRetail"
+	@echo "  make data            Tao du lieu mau"
+	@echo "  make batch           Chay batch T-SQL cu"
+	@echo "  make check           Kiem tra bao cao tren SQL Server"
+	@echo ""
+	@echo "Warehouse va ingestion:"
+	@echo "  make wh              Khoi tao PostgreSQL warehouse"
+	@echo "  make wh-sql          Mo psql vao warehouse"
+	@echo "  make minio           Khoi dong MinIO va tao bucket"
+	@echo "  make extract-full    Trich xuat day du du lieu"
+	@echo "  make load-customers  Nap customers vao PostgreSQL"
+	@echo "  make ingest TABLE=orders  Nap tang dan mot bang"
+	@echo "  make ingest-all      Nap tang dan tat ca bang"
+	@echo "  make simulate ARGS=...    Gia lap thay doi nguon"
+	@echo ""
+	@echo "Airflow va dbt:"
+	@echo "  make airflow         Build va khoi dong Airflow"
+	@echo "  make airflow-logs    Xem log Airflow"
+	@echo "  make airflow-pass    Hien thi mat khau Airflow local"
+	@echo "  make dag-check       Kiem tra loi import DAG"
+	@echo "  make dag-test        Chay thu DAG ingest_legacy"
+	@echo "  make dbt-debug       Kiem tra ket noi dbt"
+	@echo "  make dbt-build       Chay build dbt (SELECT=... de loc)"
+	@echo "  make dbt-docs        Tao va phuc vu dbt docs"
+	@echo "  make dbt-airflow     Chay dbt trong container Airflow"
+	@echo ""
+	@echo "Kiem thu, doi soat va BI:"
+	@echo "  make test            Chay unit test"
+	@echo "  make legacy-batch    Chay batch cu va ghi snapshot"
+	@echo "  make recon           Doi soat (REPORT=daily_revenue de loc)"
+	@echo "  make recon-airflow   Trigger DAG reconciliation"
+	@echo "  make metabase        Khoi dong Metabase (http://localhost:$${METABASE_PORT:-3000})"
+	@echo "  SQL va cau hinh dashboard: metabase/questions/ va metabase/dashboard.json"
 
 env:
 	@test -f .env || (cp .env.example .env && echo "Da tao .env")
@@ -122,3 +160,7 @@ recon:                   ## đối soát tất cả báo cáo, hoặc make recon
 
 recon-airflow:
 	$(COMPOSE) exec airflow airflow dags trigger reconciliation
+
+metabase:
+	$(COMPOSE) up -d metabase
+	@echo "Mở http://localhost:$${METABASE_PORT:-3000} (lần đầu Metabase cần 1-2 phút để khởi động)"

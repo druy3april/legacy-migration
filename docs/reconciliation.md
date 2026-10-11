@@ -208,6 +208,10 @@ Sau lần chụp ảnh cập nhật, chạy `make legacy-batch`
 
 ![Dashboard đối soát với cả PASS và FAIL](./images/recon-dashboard.png)
 
+SQL của Q1–Q6, cấu hình biểu đồ và bố cục dashboard được lưu trong repository
+tại [metabase/](../metabase/README.md), để có thể dựng lại mà không phụ thuộc
+metadata trong database nội bộ của Metabase.
+
 ## 9. Nhật ký chạy song song
 
 Ngày được tính theo `Asia/Ho_Chi_Minh`, khớp với `recon.v_daily_status`.

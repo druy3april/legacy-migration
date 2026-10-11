@@ -1,0 +1,87 @@
+{
+  "name": "Đối soát SQL Server ↔ dbt",
+  "questions": [
+    {
+      "name": "Q1 Trạng thái theo ngày",
+      "sql": "questions/Q1_daily_status.sql",
+      "display": "bar",
+      "visualization_settings": {
+        "graph.metrics": ["Số báo cáo"],
+        "graph.dimensions": ["Ngày", "Trạng thái"],
+        "table.cell_column": "Số báo cáo",
+        "graph.x_axis.scale": "timeseries",
+        "table.pivot_column": "Ngày",
+        "stackable.stack_type": "stacked"
+      },
+      "position": { "row": 0, "col": 6, "width": 12, "height": 6 }
+    },
+    {
+      "name": "Q2 Ma trận báo cáo x ngày",
+      "sql": "questions/Q2_report_by_day.sql",
+      "display": "table",
+      "visualization_settings": {
+        "table.cell_column": "Dòng lệch",
+        "table.pivot_column": "Ngày",
+        "table.column_formatting": [
+          {
+            "type": "single",
+            "color": "#F9D45C",
+            "value": "WARN",
+            "columns": ["Trạng thái"],
+            "operator": "=",
+            "highlight_row": false
+          },
+          {
+            "type": "single",
+            "color": "#EF8C8C",
+            "value": "FAIL",
+            "columns": ["Trạng thái"],
+            "operator": "=",
+            "highlight_row": false
+          }
+        ]
+      },
+      "position": { "row": 6, "col": 0, "width": 12, "height": 9 }
+    },
+    {
+      "name": "Q3 Số dòng lệch theo ngày",
+      "sql": "questions/Q3_diff_rows_by_day.sql",
+      "display": "line",
+      "visualization_settings": {
+        "graph.metrics": ["Dòng lệch"],
+        "graph.dimensions": ["Báo cáo", "Ngày"],
+        "table.cell_column": "Dòng lệch",
+        "graph.x_axis.scale": "ordinal",
+        "table.pivot_column": "Ngày"
+      },
+      "position": { "row": 6, "col": 12, "width": 12, "height": 6 }
+    },
+    {
+      "name": "Q4 Số ngày xanh liên tiếp",
+      "sql": "questions/Q4_consecutive_green_days.sql",
+      "display": "scalar",
+      "visualization_settings": {},
+      "position": { "row": 0, "col": 0, "width": 6, "height": 3 }
+    },
+    {
+      "name": "Q5 Lần chạy gần nhất",
+      "sql": "questions/Q5_latest_run.sql",
+      "display": "table",
+      "visualization_settings": {
+        "table.cell_column": "Số lệch",
+        "table.pivot_column": "Cấp"
+      },
+      "position": { "row": 12, "col": 12, "width": 12, "height": 9 }
+    },
+    {
+      "name": "Q6 Dòng lệch của lần FAIL gần nhất",
+      "sql": "questions/Q6_latest_failed_diffs.sql",
+      "display": "table",
+      "visualization_settings": {
+        "table.cell_column": "Mới",
+        "table.pivot_column": "Khóa"
+      },
+      "position": { "row": 15, "col": 0, "width": 12, "height": 9 }
+    }
+  ]
+}

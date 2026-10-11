@@ -98,6 +98,24 @@ services:
       - ./scripts:/opt/airflow/scripts:ro,z
       - ./reconciliation:/opt/airflow/libs/reconciliation:ro,z
       - airflow_logs:/opt/airflow/logs
+
+  metabase:
+    image: metabase/metabase:v0.58.35
+    container_name: legacy-metabase
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: "5432"
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: metabase
+      MB_DB_PASS: metabase
+      JAVA_OPTS: "-Xmx1g"
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "127.0.0.1:${METABASE_PORT:-3000}:3000"
     
 
 volumes:
