@@ -1,0 +1,110 @@
+{
+  "repository": "druy3april/legacy-migration",
+  "pull_request": "https://github.com/druy3april/legacy-migration/pull/2",
+  "runs": [
+    {
+      "id": 38763254521,
+      "branch": "tuan6/ci",
+      "sha": "58927d0911432a1bc9de1e3fd3e192e984889c7f",
+      "url": "https://github.com/druy3april/legacy-migration/actions/runs/38763254521",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "Python - ruff + unit test",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Terraform - fmt + validate + plan giả lập",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "dbt - sqlfluff + build trên dữ liệu mẫu",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 38763245025,
+      "branch": "codex/hoan-thien-du-an",
+      "sha": "58927d0911432a1bc9de1e3fd3e192e984889c7f",
+      "url": "https://github.com/druy3april/legacy-migration/actions/runs/38763245025",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "Terraform - fmt + validate + plan giả lập",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Python - ruff + unit test",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "dbt - sqlfluff + build trên dữ liệu mẫu",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "druy3april/legacy-migration",
+      "ruleset_id": 24877690
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "druy3april/legacy-migration",
+      "ruleset_id": 24877690
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "require_extra_approval_for_unattributed_changes": true,
+        "allowed_merge_methods": [
+          "merge",
+          "squash",
+          "rebase"
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "druy3april/legacy-migration",
+      "ruleset_id": 24877690
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": false,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {
+            "context": "Python - ruff + unit test",
+            "integration_id": 15368
+          },
+          {
+            "context": "dbt - sqlfluff + build trên dữ liệu mẫu",
+            "integration_id": 15368
+          }
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "druy3april/legacy-migration",
+      "ruleset_id": 24877690
+    }
+  ]
+}

@@ -121,7 +121,8 @@ biên, `dbt build`, rồi so con số mart với
 và yêu cầu status checks trên GitHub; YAML CI tự nó không chặn merge.
 Ruleset hiện tại yêu cầu Python và dbt. Job dbt giữ tên cũ để tương thích rule,
 chỉ xanh nếu Terraform thành công; bước kiểm tra vẫn chạy khi Terraform lỗi.
-Xem bằng chứng bàn giao để biết CI của commit mới nhất.
+Commit source 58927d0 đã xanh trên [PR #2](https://github.com/druy3april/legacy-migration/pull/2);
+xem [bằng chứng CI](./docs/evidence/github-ci-2026-10-15.json).
 
 Xem toàn bộ lệnh bằng `make help`.
 
@@ -201,7 +202,7 @@ truy cập. Cutover chỉ đổi link đích; dashboard OLD vẫn giữ để ro
 | 2 | Ingestion, replay snapshot có tombstone | Đã kiểm tra cả snapshot thật và bài test cô lập |
 | 3–4 | Chuyển 7 procedure sang dbt, test, lineage | Hoàn thành |
 | 5 | Đối soát 5 cấp, DAG, dashboard | 7/7 PASS; Q4 đã sửa; hai dashboard mỗi bên 7 báo cáo |
-| 6 | CI, Terraform, chi phí, cutover/rollback, tài liệu | Local CI và rehearsal routing PASS; Go vẫn chờ 5 ngày và CI commit bàn giao |
+| 6 | CI, Terraform, chi phí, cutover/rollback, tài liệu | Local + GitHub CI xanh; Terraform và rehearsal PASS; Go chờ đủ 5 ngày |
 | 6 | Video demo | Video portfolio 3 phút; nguồn và bằng chứng ở docs/demo |
 | — | Chạy song song tới khi đủ 5 ngày xanh | Đang đếm (`make readiness`) |
 

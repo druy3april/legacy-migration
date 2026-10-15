@@ -13,6 +13,8 @@ hay bước bổ sung. Không áp dụng lại vào source hiện tại đã s�
 | Q4 | Đã sửa bản lưu trong Metabase dùng recon.v_green_streak; hiện 1 ngày |
 | Phục hồi | Snapshot thật restore vào restore_rehearsal_20261014, chạy lại hai lần RESTORE PASS |
 | CI local | 44 test Python/SQL, 15 golden assertions, Ruff/SQLFluff/dbt đều PASS |
+| CI GitHub | Commit 58927d0: Python, dbt, Terraform đều xanh trên PR #2 và nhánh codex |
+| Video | Đã xuất video portfolio 180 giây, H.264 1280×720, chữ tiếng Việt; kiểm tra hình ảnh và contrast PASS |
 | Terraform | fmt/validate/plan PASS; 13 add, 0 change, 0 destroy; không apply |
 | Routing BI | Link cố định localhost:3001; diễn tập OLD → NEW → OLD qua HTTP 302 trên config tạm PASS |
 | Quyền pivot | Giữ quyền đọc bi_legacy_reader sau DROP/CREATE, kể cả nguồn rỗng; có regression test |
@@ -33,8 +35,8 @@ hay bước bổ sung. Không áp dụng lại vào source hiện tại đã s�
 
 1. **Đủ 5 ngày lịch xanh thật:** hiện 1 ngày, ngày 15/10. Nếu liên tục thành công
    thì mốc sớm nhất là 19/10; không sửa timestamp để tạo ngày giả.
-2. **CI trên chính commit bàn giao:** xem bằng chứng GitHub cập nhật kèm theo.
-   PR cũ từng xanh không thay thế kiểm tra commit mới.
+2. **Review và merge PR #2:** source commit 58927d0 đã được CI GitHub xác nhận.
+   Các commit bổ sung bằng chứng chỉ sửa tài liệu. PR vẫn để mở để người dùng review; không đẩy thẳng main.
 3. **Cutover thật sau Go:** lệnh `make cutover` chặn khi thiếu ngày hoặc snapshot
    không hợp lệ. Mọi diễn tập hiện tại chỉ dùng config tạm, link chung vẫn OLD.
 4. **Chạy README trên máy/VM sạch và đo thời gian:** hiện đã kiểm tra database
@@ -57,3 +59,19 @@ Ruleset `bao-ve-main` hiện active, yêu cầu PR và hai check: Python và dbt
 Workflow giữ nguyên hai tên check đó; dbt phụ thuộc Terraform và luôn chạy bước
 kiểm tra kết quả Terraform, nên Terraform lỗi/cancel không bị bỏ qua như một
 job skipped được GitHub coi là thành công.
+
+## CI remote đã kiểm tra
+
+- PR: https://github.com/druy3april/legacy-migration/pull/2
+- CI trên PR: https://github.com/druy3april/legacy-migration/actions/runs/38763254521
+- CI trên nhánh codex: https://github.com/druy3april/legacy-migration/actions/runs/38763245025
+- Cả ba job đều completed/success; chi tiết machine-readable ở github-ci-2026-10-15.json.
+- Main có ruleset active, yêu cầu PR + Python/dbt checks; không force push hay bypass rule.
+
+## Giới hạn kiểm tra clone sạch
+
+GitHub đã checkout source sạch và cài dependencies trên Python 3.12 để chạy CI.
+Đây không phải phép đo toàn bộ cold-start Docker/README trên máy mới. Máy local
+đang phục vụ stack thật, chỉ còn khoảng 4 GB RAM khả dụng nên không dựng thêm
+stack đầy đủ 6–8 GB để tránh gián đoạn. Bước đo 30 phút giữ trạng thái chưa xác
+nhận, thay vì suy ra từ test database hoặc thời gian CI.
