@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-15T22:32:12.370562+07:00",
+  "scope": "isolated rehearsal of actual HTTP route; shared route unchanged; not Go approval or human RTO",
+  "steps": [
+    {
+      "side": "old",
+      "location": "http://localhost:3000/dashboard/3",
+      "observed_seconds": 0.0017267610000999412
+    },
+    {
+      "side": "new",
+      "location": "http://localhost:3000/dashboard/4",
+      "observed_seconds": 0.0012181189999864728
+    },
+    {
+      "side": "old",
+      "location": "http://localhost:3000/dashboard/3",
+      "observed_seconds": 0.0008076179997260624
+    }
+  ],
+  "passed": true
+}

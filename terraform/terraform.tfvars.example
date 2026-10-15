@@ -1,0 +1,8 @@
+# Sao chép thành terraform.tfvars (đã nằm trong .gitignore) rồi sửa nếu cần.
+aws_region                       = "ap-southeast-1"
+project                          = "legacy-migration"
+environment                      = "dev"
+use_mock_credentials             = true
+redshift_base_rpu                = 8
+redshift_max_rpu                 = 32
+redshift_monthly_rpu_hours_limit = 100

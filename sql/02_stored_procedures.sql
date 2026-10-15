@@ -157,7 +157,15 @@ BEGIN
     FROM (SELECT DISTINCT CONVERT(CHAR(7), order_date, 126) AS ym FROM dbo.orders) AS m;
 
     IF @cols IS NULL
+    BEGIN
+        -- Empty source must replace yesterday's pivot, not retain stale results.
+        IF OBJECT_ID(N'dbo.category_monthly_revenue', N'U') IS NOT NULL
+            DROP TABLE dbo.category_monthly_revenue;
+        CREATE TABLE dbo.category_monthly_revenue (category NVARCHAR(50));
+        IF DATABASE_PRINCIPAL_ID(N'bi_legacy_reader') IS NOT NULL
+            GRANT SELECT ON OBJECT::dbo.category_monthly_revenue TO bi_legacy_reader;
         RETURN;
+    END;
 
     -- Số cột thay đổi theo dữ liệu nên bảng đích phải xóa đi tạo lại
     IF OBJECT_ID(N'dbo.category_monthly_revenue', N'U') IS NOT NULL
@@ -178,6 +186,9 @@ BEGIN
         PIVOT (SUM(amount) FOR ym IN (' + @cols + N')) AS pvt;';
 
     EXEC (@sql);
+    -- DROP/CREATE removes object grants; restore the existing BI reader's access.
+    IF DATABASE_PRINCIPAL_ID(N'bi_legacy_reader') IS NOT NULL
+        GRANT SELECT ON OBJECT::dbo.category_monthly_revenue TO bi_legacy_reader;
 END
 GO
 

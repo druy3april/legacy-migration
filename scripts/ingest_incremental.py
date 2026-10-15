@@ -63,28 +63,24 @@ def guard_delete_ratio(
 
 
 def check_schema(src, table: str, cfg: dict) -> None:
+    from schema_contract import schema_differences
+
     cur = src.cursor()
     cur.execute(
-        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = %s",
+        "SELECT COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,"
+        "NUMERIC_SCALE,IS_NULLABLE,DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS "
+        "WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME=%s",
         (table,),
     )
-    source_columns = {row[0] for row in cur.fetchall()}
-    expected_columns = set(cfg["columns"]) | {"row_ver"}
-
-    added = sorted(source_columns - expected_columns)
-    removed = sorted(expected_columns - source_columns)
-    if added or removed:
-        changes = []
-        if added:
-            changes.append(f"cột được thêm: {', '.join(added)}")
-        if removed:
-            changes.append(f"cột bị thiếu: {', '.join(removed)}")
-        raise SchemaDriftError(f"Schema nguồn dbo.{table} đã thay đổi ({'; '.join(changes)})")
+    changes = schema_differences(cur.fetchall(), table)
+    cur.close()
+    if changes:
+        raise SchemaDriftError(f"Schema nguồn dbo.{table} đã thay đổi: {'; '.join(changes)}")
 
 
 def get_watermark(pg, table: str) -> int:
     with pg.cursor() as cur:
-        cur.execute("SELECT last_rowversion FROM etl.watermarks WHERE table_name = %s", (table,))
+        cur.execute("SELECT last_rowversion FROM etl.watermarks WHERE table_name = %s FOR UPDATE", (table,))
         row = cur.fetchone()
     if row is None:
         raise RuntimeError(f"Chưa có dòng watermark cho bảng {table}, hãy chạy make wh")
@@ -119,8 +115,11 @@ def extract_to_minio(src, s3, bucket: str, table: str, cfg: dict, last: int, upp
     data = {name: [row[i] for row in rows] for i, name in enumerate(names)}
     buffer = io.BytesIO()
     pq.write_table(pa.table(data), buffer)
-    key = f"raw/{table}/incremental/rv_{last:020d}_{upper:020d}.parquet"
-    s3.put_object(Bucket=bucket, Key=key, Body=buffer.getvalue())
+    from archive_raw import digest, put_immutable
+
+    body = buffer.getvalue()
+    key = f"raw/{table}/incremental/rv_{last:020d}_{upper:020d}_{digest(body)}.parquet"
+    put_immutable(s3, bucket, key, body)
     return key, len(rows)
 
 
@@ -157,6 +156,7 @@ def detect_deletes(table: str) -> int:
     key = cfg["key"]
     deleted_count = 0
     with get_connection() as src, get_pg_connection() as pg:
+        pg.execute("SELECT pg_advisory_xact_lock(73001)")
         src_cur = src.cursor()
         src_cur.execute(f"SELECT {key} FROM dbo.{table}")
         with pg.cursor() as pg_cur:
@@ -215,6 +215,7 @@ def ingest_table(table: str, upper: int | None = None, run_id: str = "manual") -
         raise ValueError(f"Chưa cấu hình bảng '{table}'. Các bảng có sẵn: {', '.join(TABLES)}")
 
     with get_connection() as src, get_pg_connection() as pg:
+        pg.execute("SELECT pg_advisory_xact_lock(73001)")
         check_schema(src, table, cfg)
         last = get_watermark(pg, table)
         upper = get_upper_bound(src) if upper is None else upper
@@ -261,6 +262,12 @@ def main() -> int:
         for selected_table in tables:
             result = ingest_table(selected_table, upper=upper, run_id=run_id)
             print(f"[{result['table']}] Đã tải {result['rows']} dòng (rowversion {result['from']}..{result['to']})")
+        if table == "all":
+            for selected_table in tables:
+                detect_deletes(selected_table)
+            from reconciliation.ingest_batch import complete_ingestion
+
+            print("Manifest:", complete_ingestion(run_id))
     except KeyError as exc:
         print(f"Thiếu biến môi trường {exc}, hãy kiểm tra file .env")
         return 1

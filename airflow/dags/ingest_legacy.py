@@ -79,6 +79,12 @@ def ingest_legacy():
 
     @task(outlets=[WAREHOUSE_RAW])
     def summarize(results: list[dict[str, Any]], deletion_results: list[dict[str, Any]]) -> None:
+        from airflow.sdk import get_current_context
+
+        from reconciliation.ingest_batch import complete_ingestion
+
+        manifest = complete_ingestion(get_current_context()["run_id"])
+        LOGGER.info("Completed batch manifest: %s", manifest)
         row_counts = {str(result["table"]): int(result["rows"]) for result in results}
         total_rows = sum(row_counts.values())
         deleted_counts = {str(result["table"]): int(result["deleted"]) for result in deletion_results}

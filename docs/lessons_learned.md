@@ -63,3 +63,36 @@
 - **Cách sửa:** Gắn fingerprint vào batch và raw; nếu snapshot không khớp thì
   `SKIP` tại L0, chạy lại trên cùng snapshot. Nếu `SKIP` kéo dài, xử lý như
   sự cố vận hành.
+
+## 10. `dbt compile` hỏng trên database mới
+
+- **Triệu chứng:** Khi dựng CI với Postgres trống, `dbt compile` báo
+  `relation "staging.stg_orders" does not exist` ở `mart_category_monthly_revenue`,
+  dù `dbt build` trên máy local vẫn xanh.
+- **Nguyên nhân:** Model pivot động gọi `run_query` vào `stg_orders` lúc biên dịch
+  để lấy danh sách tháng. Trên máy local view đã có từ các lần build trước; trên
+  database mới thì chưa. `dbt build` không lỗi vì biên dịch từng model ngay trước
+  khi chạy, lúc đó `stg_orders` đã được tạo.
+- **Cách sửa:** Chỉ chạy `run_query` khi `load_relation(ref('stg_orders'))` tồn tại;
+  nếu chưa có thì biên dịch với danh sách tháng rỗng. CI dựng database từ đầu
+  mỗi lần nên bắt được loại lỗi "chỉ chạy được trên máy mình" này.
+
+## 11. dbt test xanh, golden test đỏ
+
+- **Triệu chứng:** Lặp lại Ca 1 (đổi `order_day` sang giờ Việt Nam) trên dữ liệu
+  mẫu của CI: `dbt build` vẫn `PASS=63`.
+- **Nguyên nhân:** Giống mục 7, test schema không kiểm tra doanh thu từng ngày.
+- **Cách sửa:** Thêm `ci/assert_expected_marts.sql` so con số mart với kết quả kỳ
+  vọng tính sẵn cho bộ dữ liệu mẫu (doanh thu từng ngày, phân bố segment, top 3...).
+  CI đỏ ngay ở pull request, trước khi lỗi tới được hệ thống thật.
+
+## Hoàn thiện ngày 15/10/2026
+
+- `umask 077` của bước backup phải được khôi phục trước khi áp dụng patch, nếu
+  không UID 50000 của Airflow không đọc được source quyền 600. Đã sửa hướng dẫn.
+- Q4 trong file SQL không tự cập nhật query lưu trong metadata Metabase. Đã
+  đồng bộ và kiểm tra lại đúng 1 ngày theo view mới.
+- DROP/CREATE bảng pivot làm mất object GRANT. Procedure hiện khôi phục quyền
+  đọc của BI user đã tồn tại; regression test bao phủ nhánh có dữ liệu/rỗng.
+- CI giữ đúng tên status checks ruleset yêu cầu; dependency skipped không đủ để
+  bảo vệ Terraform, nên dbt có bước `always()` kiểm tra upstream result.

@@ -1,0 +1,365 @@
+{
+  "at": "2026-10-15T22:37:02.560502+07:00",
+  "database_writes": false,
+  "snapshot": {
+    "ok": true,
+    "reason": "Snapshot khớp",
+    "ingest_run_id": "768e30828a0f4a40a955335ce49f6b55",
+    "batch_id": "manual__da86b9a67aea",
+    "build_id": "2521c928182241988e978a5f7cc9ea37",
+    "fingerprint": {
+      "customers": {
+        "rows": 2030,
+        "max_rowver": 290254,
+        "sha256": "14d965f4f0a3c032c3044393598c714fea57899cb41627a1bc0d72f3086be492"
+      },
+      "products": {
+        "rows": 60,
+        "max_rowver": 22074,
+        "sha256": "5d829f15e3b7710472e3e4fcd84a0bc7dd99e5111d03efe651ff206a6f321b99"
+      },
+      "orders": {
+        "rows": 20211,
+        "max_rowver": 290466,
+        "sha256": "12f1f20420c1c443c92103bee5bd9b0f07568103f49f089f38d328526d300942"
+      },
+      "order_items": {
+        "rows": 60607,
+        "max_rowver": 290463,
+        "sha256": "cbb8deb65233204c32067c4d038dda6ad0687773a15447794bc4fb3f84d0e4ae"
+      }
+    },
+    "dbt_invocation_id": "27a434b9-0414-4254-a886-a1dbbd5e02d2"
+  },
+  "streak": {
+    "green_days": 1,
+    "since": "2026-10-15",
+    "until": "2026-10-15",
+    "last_run_date": "2026-10-15"
+  },
+  "daily": [
+    {
+      "run_date": "2026-10-15",
+      "reports": 7,
+      "pass_count": 7,
+      "warn_count": 0,
+      "skip_count": 0,
+      "fail_count": 0,
+      "diff_rows": "0",
+      "green": true
+    }
+  ],
+  "latest_run": {
+    "run_id": "manual__7c31565e4d58",
+    "requested_reports": [
+      "daily_revenue",
+      "customer_ltv",
+      "customer_segments",
+      "product_sales",
+      "cumulative_revenue",
+      "top_products_by_category",
+      "category_monthly_revenue"
+    ],
+    "snapshot": {
+      "ok": true,
+      "reason": "Snapshot khớp",
+      "batch_id": "manual__da86b9a67aea",
+      "build_id": "2521c928182241988e978a5f7cc9ea37",
+      "fingerprint": {
+        "orders": {
+          "rows": 20211,
+          "sha256": "12f1f20420c1c443c92103bee5bd9b0f07568103f49f089f38d328526d300942",
+          "max_rowver": 290466
+        },
+        "products": {
+          "rows": 60,
+          "sha256": "5d829f15e3b7710472e3e4fcd84a0bc7dd99e5111d03efe651ff206a6f321b99",
+          "max_rowver": 22074
+        },
+        "customers": {
+          "rows": 2030,
+          "sha256": "14d965f4f0a3c032c3044393598c714fea57899cb41627a1bc0d72f3086be492",
+          "max_rowver": 290254
+        },
+        "order_items": {
+          "rows": 60607,
+          "sha256": "cbb8deb65233204c32067c4d038dda6ad0687773a15447794bc4fb3f84d0e4ae",
+          "max_rowver": 290463
+        }
+      },
+      "ingest_run_id": "768e30828a0f4a40a955335ce49f6b55",
+      "dbt_invocation_id": "27a434b9-0414-4254-a886-a1dbbd5e02d2"
+    },
+    "started_at": "2026-10-15 15:28:08.296358+00:00",
+    "finished_at": "2026-10-15 15:28:09.548731+00:00",
+    "status": "PASS",
+    "eligible_for_cutover": true
+  },
+  "latest_build": {
+    "build_id": "2521c928182241988e978a5f7cc9ea37",
+    "ingest_run_id": "768e30828a0f4a40a955335ce49f6b55",
+    "fingerprint": {
+      "orders": {
+        "rows": 20211,
+        "sha256": "12f1f20420c1c443c92103bee5bd9b0f07568103f49f089f38d328526d300942",
+        "max_rowver": 290466
+      },
+      "products": {
+        "rows": 60,
+        "sha256": "5d829f15e3b7710472e3e4fcd84a0bc7dd99e5111d03efe651ff206a6f321b99",
+        "max_rowver": 22074
+      },
+      "customers": {
+        "rows": 2030,
+        "sha256": "14d965f4f0a3c032c3044393598c714fea57899cb41627a1bc0d72f3086be492",
+        "max_rowver": 290254
+      },
+      "order_items": {
+        "rows": 60607,
+        "sha256": "cbb8deb65233204c32067c4d038dda6ad0687773a15447794bc4fb3f84d0e4ae",
+        "max_rowver": 290463
+      }
+    },
+    "started_at": "2026-10-15 15:27:55.147727+00:00",
+    "finished_at": "2026-10-15 15:28:07.018658+00:00",
+    "status": "PASS",
+    "invocation_id": "27a434b9-0414-4254-a886-a1dbbd5e02d2",
+    "artifact_path": "/tmp/migration-dbt-6yhbdp2w"
+  },
+  "latest_ingest": {
+    "run_id": "768e30828a0f4a40a955335ce49f6b55",
+    "finished_at": "2026-10-15 15:27:50.707216+00:00",
+    "fingerprint": {
+      "orders": {
+        "rows": 20211,
+        "sha256": "12f1f20420c1c443c92103bee5bd9b0f07568103f49f089f38d328526d300942",
+        "max_rowver": 290466
+      },
+      "products": {
+        "rows": 60,
+        "sha256": "5d829f15e3b7710472e3e4fcd84a0bc7dd99e5111d03efe651ff206a6f321b99",
+        "max_rowver": 22074
+      },
+      "customers": {
+        "rows": 2030,
+        "sha256": "14d965f4f0a3c032c3044393598c714fea57899cb41627a1bc0d72f3086be492",
+        "max_rowver": 290254
+      },
+      "order_items": {
+        "rows": 60607,
+        "sha256": "cbb8deb65233204c32067c4d038dda6ad0687773a15447794bc4fb3f84d0e4ae",
+        "max_rowver": 290463
+      }
+    },
+    "manifest_key": "manifests/b8c983440d286749da7ddc47e1e2ce59a6b2a242f2ac0b20ced4996e4a0fecb8.json"
+  },
+  "raw": {
+    "customers": {
+      "active": 2030,
+      "tombstones": 0
+    },
+    "products": {
+      "active": 60,
+      "tombstones": 0
+    },
+    "orders": {
+      "active": 20211,
+      "tombstones": 0
+    },
+    "order_items": {
+      "active": 60607,
+      "tombstones": 12
+    }
+  },
+  "dashboards": [
+    {
+      "id": 3,
+      "name": "OLD - Báo cáo SQL Server",
+      "questions": 7,
+      "question_ids": [
+        44,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51
+      ]
+    },
+    {
+      "id": 4,
+      "name": "NEW - Báo cáo PostgreSQL",
+      "questions": 7,
+      "question_ids": [
+        45,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57
+      ]
+    }
+  ],
+  "q4": {
+    "id": 41,
+    "name": "Q4 Số ngày xanh liên tiếp",
+    "dataset_query": "{\"lib/type\": \"mbql/query\", \"database\": 2, \"stages\": [{\"lib/type\": \"mbql.stage/native\", \"native\": \"SELECT green_days AS \\\"Số ngày xanh liên tiếp\\\"\\nFROM recon.v_green_streak;\"}]}"
+  },
+  "questions": [
+    {
+      "id": 44,
+      "name": "OLD - Daily Revenue",
+      "status": "PASS",
+      "rows": 186
+    },
+    {
+      "id": 45,
+      "name": "NEW - Daily Revenue",
+      "status": "PASS",
+      "rows": 186
+    },
+    {
+      "id": 46,
+      "name": "OLD - Customer LTV",
+      "status": "PASS",
+      "rows": 2030
+    },
+    {
+      "id": 47,
+      "name": "OLD - Customer segments",
+      "status": "PASS",
+      "rows": 2030
+    },
+    {
+      "id": 48,
+      "name": "OLD - Product sales",
+      "status": "PASS",
+      "rows": 57
+    },
+    {
+      "id": 49,
+      "name": "OLD - Cumulative revenue",
+      "status": "PASS",
+      "rows": 198
+    },
+    {
+      "id": 50,
+      "name": "OLD - Top products",
+      "status": "PASS",
+      "rows": 15
+    },
+    {
+      "id": 51,
+      "name": "OLD - Category/month",
+      "status": "PASS",
+      "rows": 5
+    },
+    {
+      "id": 52,
+      "name": "NEW - Customer LTV",
+      "status": "PASS",
+      "rows": 2030
+    },
+    {
+      "id": 53,
+      "name": "NEW - Customer segments",
+      "status": "PASS",
+      "rows": 2030
+    },
+    {
+      "id": 54,
+      "name": "NEW - Product sales",
+      "status": "PASS",
+      "rows": 57
+    },
+    {
+      "id": 55,
+      "name": "NEW - Cumulative revenue",
+      "status": "PASS",
+      "rows": 198
+    },
+    {
+      "id": 56,
+      "name": "NEW - Top products",
+      "status": "PASS",
+      "rows": 15
+    },
+    {
+      "id": 57,
+      "name": "NEW - Category/month",
+      "status": "PASS",
+      "rows": 5
+    }
+  ],
+  "comparisons": [
+    {
+      "report": "daily_revenue",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "customer_ltv",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "customer_segments",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "product_sales",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "cumulative_revenue",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "top_products_by_category",
+      "status": "PASS",
+      "diffs": 0
+    },
+    {
+      "report": "category_monthly_revenue",
+      "status": "PASS",
+      "diffs": 0
+    }
+  ],
+  "dags": [
+    {
+      "dag_id": "ingest_legacy",
+      "is_paused": false,
+      "is_stale": false,
+      "last_parsed_time": "2026-10-15 15:36:54.531357+00:00"
+    },
+    {
+      "dag_id": "legacy_nightly_batch",
+      "is_paused": false,
+      "is_stale": false,
+      "last_parsed_time": "2026-10-15 15:36:55.860448+00:00"
+    },
+    {
+      "dag_id": "reconciliation",
+      "is_paused": false,
+      "is_stale": false,
+      "last_parsed_time": "2026-10-15 15:36:54.231064+00:00"
+    },
+    {
+      "dag_id": "simulate_source_activity",
+      "is_paused": false,
+      "is_stale": false,
+      "last_parsed_time": "2026-10-15 15:36:54.284340+00:00"
+    },
+    {
+      "dag_id": "transform_dbt",
+      "is_paused": false,
+      "is_stale": false,
+      "last_parsed_time": "2026-10-15 15:36:54.193686+00:00"
+    }
+  ],
+  "cutover_ready": false
+}

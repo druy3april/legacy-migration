@@ -32,42 +32,38 @@ def fetch_dataset(conn, table: str, columns: list[str] | None = None) -> Dataset
 # ---------------------------------------------------------------- snapshot
 
 
-def legacy_fingerprint(mssql) -> dict[str, dict[str, int | None]]:
-    """Số dòng + rowversion lớn nhất của 4 bảng nguồn tại SQL Server."""
-    cur = mssql.cursor()
-    fingerprint = {}
-    for table in SOURCE_TABLES:
-        cur.execute(f"SELECT COUNT(*), MAX(CAST(row_ver AS BIGINT)) FROM dbo.{table}")
-        rows, max_rv = cur.fetchone()
-        fingerprint[table] = {"rows": int(rows), "max_rowver": None if max_rv is None else int(max_rv)}
-    cur.close()
-    return fingerprint
+def legacy_fingerprint(mssql):
+    from reconciliation.fingerprint import fingerprint
+
+    return fingerprint(mssql, source=True)
 
 
-def raw_fingerprint(pg) -> dict[str, dict[str, int | None]]:
-    """Cùng phép đo trên raw Postgres, chỉ tính dòng chưa bị đánh dấu xóa."""
-    fingerprint = {}
-    with pg.cursor() as cur:
-        for table in SOURCE_TABLES:
-            cur.execute(f"SELECT count(*), max(row_ver) FROM raw.{table} WHERE _deleted_at IS NULL")
-            rows, max_rv = cur.fetchone()
-            fingerprint[table] = {"rows": int(rows), "max_rowver": None if max_rv is None else int(max_rv)}
-    return fingerprint
+def raw_fingerprint(pg):
+    from reconciliation.fingerprint import fingerprint
+
+    return fingerprint(pg)
 
 
 def record_legacy_batch(
-    pg, batch_id: str, started_at: datetime, finished_at: datetime, before: dict, after: dict
+    pg,
+    batch_id: str,
+    started_at: datetime,
+    finished_at: datetime,
+    before: dict,
+    after: dict,
+    ingest_run_id: str | None = None,
 ) -> bool:
     stable = before == after
     with pg.cursor() as cur:
         cur.execute(
             "INSERT INTO recon.legacy_batches "
-            "(batch_id, started_at, finished_at, fingerprint_before, fingerprint_after, stable) "
-            "VALUES (%s, %s, %s, %s, %s, %s) "
+            "(batch_id, started_at, finished_at, fingerprint_before, fingerprint_after, stable, ingest_run_id) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (batch_id) DO UPDATE SET started_at = EXCLUDED.started_at, "
             "finished_at = EXCLUDED.finished_at, fingerprint_before = EXCLUDED.fingerprint_before, "
-            "fingerprint_after = EXCLUDED.fingerprint_after, stable = EXCLUDED.stable",
-            (batch_id, started_at, finished_at, Jsonb(before), Jsonb(after), stable),
+            "fingerprint_after = EXCLUDED.fingerprint_after, stable = EXCLUDED.stable, "
+            "ingest_run_id=EXCLUDED.ingest_run_id",
+            (batch_id, started_at, finished_at, Jsonb(before), Jsonb(after), stable, ingest_run_id),
         )
     return stable
 
@@ -75,13 +71,13 @@ def record_legacy_batch(
 def latest_legacy_batch(pg) -> dict | None:
     with pg.cursor() as cur:
         cur.execute(
-            "SELECT batch_id, finished_at, fingerprint_after, stable "
+            "SELECT batch_id, finished_at, fingerprint_after, stable, ingest_run_id "
             "FROM recon.legacy_batches ORDER BY finished_at DESC LIMIT 1"
         )
         row = cur.fetchone()
     if row is None:
         return None
-    return {"batch_id": row[0], "finished_at": row[1], "fingerprint": row[2], "stable": row[3]}
+    return {"batch_id": row[0], "finished_at": row[1], "fingerprint": row[2], "stable": row[3], "ingest_run_id": row[4]}
 
 
 # ---------------------------------------------------------------- ghi kết quả

@@ -46,3 +46,6 @@ hình retention và có quy trình phát hiện watermark đã quá hạn.
 - Trước khi đánh dấu, detector chặn nếu tỷ lệ dòng raw đang hoạt động dự kiến bị
   đánh dấu xóa vượt `MAX_DELETE_RATIO` (mặc định `0.05`). Chỉ tăng ngưỡng có chủ
   ý sau khi xác minh nguồn nếu một đợt xóa hợp lệ lớn hơn ngưỡng.
+
+- Cả CLI `make ingest-all` và DAG đều phát hiện xóa. Snapshot manifest lưu cả
+  tombstone để replay không làm sống lại dòng đã xóa.

@@ -1,0 +1,80 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=1280,height=720">
+<script src="assets/gsap.min.js"></script>
+<style>
+@font-face{font-family:"Be Vietnam Pro";src:url("assets/BeVietnamPro-Regular.ttf");font-weight:400}
+@font-face{font-family:"Be Vietnam Pro";src:url("assets/BeVietnamPro-ExtraBold.ttf");font-weight:800}
+@font-face{font-family:"IBM Plex Mono";src:url("assets/IBMPlexMono-Regular.ttf");font-weight:400}
+
+*{box-sizing:border-box}html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:#0b1e29;color:#eef4f5;font-family:"Be Vietnam Pro",sans-serif}
+#root{width:1280px;height:720px;position:relative;overflow:hidden}.scene{position:absolute;inset:0;background:#0b1e29;overflow:hidden}
+.scene-content{width:100%;height:100%;padding:48px 72px;display:flex;flex-direction:column;gap:18px;position:relative;z-index:2}
+.eyebrow{color:#62b5e5;font-family:"IBM Plex Mono",monospace;font-size:22px;letter-spacing:4px}
+h1{font-size:60px;line-height:1.13;letter-spacing:-2px;font-weight:800;margin:0;max-width:1100px}
+.hero{font-size:32px;color:#62b5e5;font-weight:800;padding:15px 22px;background:#16384d;border-radius:8px;width:fit-content;max-width:1100px}
+ul{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:15px}li{font-size:25px;line-height:1.4;max-width:1060px;padding-left:24px;position:relative;font-weight:400}
+li:before{content:"›";position:absolute;left:0;color:#62b5e5;font-weight:800}.note{font-size:21px;color:#afd0df;line-height:1.5;margin:0;max-width:1060px}
+.footer{display:flex;justify-content:space-between;margin-top:auto;border-top:1px solid #31576b;padding-top:13px;font-family:"IBM Plex Mono",monospace;color:#afd0df;font-size:16px}
+.ghost{position:absolute;right:35px;bottom:120px;color:#16384d;font-size:280px;font-weight:800;opacity:.45;line-height:1}.backline{position:absolute;width:390px;height:390px;border:1px solid #31576b;border-radius:50%;right:-200px;top:-180px;opacity:.45}
+#progress{position:absolute;left:0;bottom:0;height:5px;width:1280px;background:#62b5e5;transform-origin:left;z-index:50}
+</style></head><body><div id="root" data-composition-id="main" data-width="1280" data-height="720" data-start="0" data-duration="180"><section id="scene0" class="scene" style="z-index:1;">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>01</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">LEGACY MIGRATION</div><h1>Giữ đúng số liệu khi đổi nền tảng</h1>
+    <div class="hero">7 stored procedure → 12 model dbt</div><ul><li id="b0-0">SQL Server 2022 → MinIO → PostgreSQL</li><li id="b0-1">Airflow điều phối • Metabase trình bày</li><li id="b0-2">Portfolio data engineering · kiểm chứng ngày 15/10/2026</li></ul><p class="note">Mục tiêu: chuyển báo cáo mà không làm sai logic nghiệp vụ.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>01 / 12</span></div></div></section><section id="scene1" class="scene" style="z-index:2;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>02</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">BÀI TOÁN</div><h1>Từ job đêm đến pipeline có kiểm thử</h1>
+    <div class="hero">7 báo cáo nghiệp vụ</div><ul><li id="b1-0">Doanh thu ngày, LTV và phân khúc khách hàng</li><li id="b1-1">Doanh số, lũy kế, top sản phẩm và pivot tháng</li><li id="b1-2">Bảo toàn quy tắc trạng thái đơn, NULL, ngày UTC và ngưỡng tiền</li></ul><p class="note">Viết lại logic khó: CURSOR, WHILE, MERGE, bảng tạm và SQL động.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>02 / 12</span></div></div></section><section id="scene2" class="scene" style="z-index:3;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>03</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">KIẾN TRÚC</div><h1>Một nguồn, hai hệ báo cáo</h1>
+    <div class="hero">SQL Server → MinIO → raw → dbt → marts</div><ul><li id="b2-0">rowversion → tải thay đổi và phát hiện xóa</li><li id="b2-1">raw upsert + tombstone; snapshot Parquet có manifest</li><li id="b2-2">Batch cũ và dbt cùng gắn ingestion ID để đối soát</li></ul><p class="note">PostgreSQL phục vụ lab; Terraform mô tả phương án đưa lên AWS.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>03 / 12</span></div></div></section><section id="scene3" class="scene" style="z-index:4;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>04</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">INGESTION</div><h1>Tải lại an toàn, không nhân đôi</h1>
+    <div class="hero">MIN_ACTIVE_ROWVERSION() − 1</div><ul><li id="b3-0">Chỉ nâng watermark cùng transaction nạp raw</li><li id="b3-1">Kiểm tra tên, kiểu, độ dài và precision/scale của schema</li><li id="b3-2">Quét khóa để đánh dấu DELETE; chặn tỷ lệ xóa bất thường</li></ul><p class="note">Cận rowversion giới hạn khoảng tải; nó không tự tạo snapshot transaction.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>04 / 12</span></div></div></section><section id="scene4" class="scene" style="z-index:5;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>05</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">CHUYỂN LOGIC</div><h1>SQL theo tập hợp, có lineage</h1>
+    <div class="hero">12 model + 49 dbt test</div><ul><li id="b4-0">CURSOR → CASE WHEN; WHILE → date spine + window</li><li id="b4-1">Bảng tạm → CTE/intermediate; PIVOT → Jinja</li><li id="b4-2">Freshness riêng từng bảng; full build gắn batch đầu vào</li></ul><p class="note">Full build PASS mới đủ điều kiện; partial build được lưu riêng để debug.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>05 / 12</span></div></div></section><section id="scene5" class="scene" style="z-index:6;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>06</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">ĐỐI SOÁT</div><h1>Kiểm tra từ tổng đến từng khóa</h1>
+    <div class="hero">7/7 PASS · 0 dòng lệch</div><ul><li id="b5-0">L0: cùng trạng thái dữ liệu và cùng batch</li><li id="b5-1">L1–L3: số dòng, tổng hợp và phân bố nhóm</li><li id="b5-2">L4–L5: từng khóa và checksum sau chuẩn hóa</li></ul><p class="note">Kết quả đọc thực tế từ các question OLD/NEW; dữ liệu kiểm tra là dữ liệu lab.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>06 / 12</span></div></div></section><section id="scene6" class="scene" style="z-index:7;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>07</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">KIỂM THỬ</div><h1>Chứng minh cả đường thành công và lỗi</h1>
+    <div class="hero">44 kiểm thử Python/SQL + golden fixture</div><ul><li id="b6-0">Retry không tạo trùng; nguồn đổi → SKIP và exit khác 0</li><li id="b6-1">Debug không ghi PASS; partial build không kế thừa PASS cũ</li><li id="b6-2">15 golden assertions kiểm tra cả giá trị pivot và NULL</li></ul><p class="note">Bộ CI local đã qua Ruff, SQLFluff, dbt compile/build và freshness.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>07 / 12</span></div></div></section><section id="scene7" class="scene" style="z-index:8;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>08</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">PHỤC HỒI</div><h1>Snapshot phát lại được cả tombstone</h1>
+    <div class="hero">RESTORE PASS × 2</div><ul><li id="b7-0">Manifest định danh nội dung bằng SHA-256</li><li id="b7-1">Khôi phục vào database restore_* riêng</li><li id="b7-2">Chạy lại cùng manifest không nhân đôi dữ liệu</li></ul><p class="note">Không hạ watermark để giả lập phục hồi lịch sử; raw và metadata có backup riêng.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>08 / 12</span></div></div></section><section id="scene8" class="scene" style="z-index:9;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>09</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">BI &amp; VẬN HÀNH</div><h1>OLD và NEW đều đọc bằng tài khoản BI</h1>
+    <div class="hero">14 question · 2 dashboard</div><ul><li id="b8-0">OLD: SQL Server • NEW: PostgreSQL</li><li id="b8-1">Đã thử chạy 14 SELECT và so đủ 7 cặp báo cáo</li><li id="b8-2">Sửa quyền pivot sau DROP/CREATE để dashboard không hỏng sau batch</li></ul><p class="note">Question và dashboard được xuất định nghĩa vào repository để tái dựng.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>09 / 12</span></div></div></section><section id="scene9" class="scene" style="z-index:10;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>10</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">ĐIỀU KIỆN CHUYỂN</div><h1>Đủ bằng chứng rồi mới Go</h1>
+    <div class="hero">Hiện tại: 1/5 ngày xanh</div><ul><li id="b9-0">Một run đủ 7 báo cáo và đủ check mới được tính xanh</li><li id="b9-1">Ngày lịch phải liên tiếp; WARN/SKIP không tính</li><li id="b9-2">Đã có quy trình và diễn tập routing OLD → NEW → OLD</li></ul><p class="note">Chưa tuyên bố cutover thật; cần đủ 5 ngày và xác nhận CI remote.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>10 / 12</span></div></div></section><section id="scene10" class="scene" style="z-index:11;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>11</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">HẠ TẦNG &amp; CI</div><h1>Tái lập được và ghi rõ giới hạn</h1>
+    <div class="hero">Terraform: 13 add · 0 change · 0 destroy</div><ul><li id="b10-0">Chỉ validate/plan; không tạo tài nguyên AWS</li><li id="b10-1">Workflow có Ruff, dbt, golden, SQLFluff và Terraform</li><li id="b10-2">Chi phí có region, giả định dung lượng và thời gian xử lý</li></ul><p class="note">Local PASS khác với CI GitHub; trạng thái remote được ghi riêng trong bằng chứng.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>11 / 12</span></div></div></section><section id="scene11" class="scene" style="z-index:12;opacity:0">
+    <div class="backline" data-layout-ignore></div><div class="ghost" data-layout-ignore>12</div>
+    <div class="scene-content" data-layout-allow-overlap><div class="eyebrow">PORTFOLIO</div><h1>Di chuyển dữ liệu là bài toán vận hành</h1>
+    <div class="hero">Đúng logic • có kiểm thử • phục hồi được</div><ul><li id="b11-0">7 procedure → 12 model dbt</li><li id="b11-1">7/7 báo cáo khớp; replay cả dòng đã xóa</li><li id="b11-2">Tiếp tục lịch 01:00 để tích lũy đủ 5 ngày thật</li></ul><p class="note">Source, ADR, migration notes, CI và evidence đi cùng dự án. Không dựng số liệu nghiệm thu.</p>
+    <div class="footer"><span>NGUYỄN VĂN DUY · LEGACY MIGRATION</span><span>12 / 12</span></div></div></section><div id="progress" data-layout-ignore></div></div><script>
+window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});
+for(let i=0;i<12;i++){const t=i*15;const s="#scene"+i;
+if(i>0){tl.to("#scene"+(i-1),{opacity:0,duration:.55,ease:"power2.inOut"},t);tl.to(s,{opacity:1,duration:.55,ease:"power2.inOut"},t);}
+tl.from(s+" .eyebrow",{x:-35,opacity:0,duration:.4,ease:"expo.out"},t+.2);
+tl.from(s+" h1",{y:36,opacity:0,duration:.7,ease:"power3.out"},t+.35);
+tl.from(s+" .hero",{scale:.96,opacity:0,duration:.6,ease:"back.out(1.1)"},t+1.1);
+for(let j=0;j<3;j++)tl.from("#b"+i+"-"+j,{x:j%2?26:-26,opacity:0,duration:.5,ease:["power1.out","circ.out","power4.out"][j]},t+3+j*2.5);
+tl.from(s+" .note",{y:12,opacity:0,duration:.7,ease:"sine.out"},t+11);
+tl.from(s+" .footer",{opacity:0,duration:.8,ease:"power2.out"},t+.5);
+tl.to(s+" .backline",{rotation:25,scale:1.1,duration:15,ease:"none"},t);
+}
+tl.fromTo("#progress",{scaleX:0},{scaleX:1,duration:180,ease:"none"},0);window.__timelines.main=tl;
+</script></body></html>

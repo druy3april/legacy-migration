@@ -1,0 +1,584 @@
+{
+  "audit_date_local": "2026-10-14",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "source_guide": "/home/nguyenvanduy/Downloads/HUONG_DAN_DU_AN.md",
+  "branch": "tuan6/lint",
+  "head": "e9ec671",
+  "scope": "working tree including pre-existing uncommitted changes; cached remote refs only",
+  "verification": {
+    "unit_tests_passed": 22,
+    "ruff": "PASS",
+    "ruff_formatted_files": 42,
+    "ci": {
+      "database": "audit_legacy_e68dc90ad9",
+      "scratch": "/tmp/legacy-audit-ci-g59fyn07",
+      "steps": [
+        {
+          "name": "init",
+          "exit_code": 0
+        },
+        {
+          "name": "sample",
+          "exit_code": 0
+        },
+        {
+          "name": "compile",
+          "exit_code": 0
+        },
+        {
+          "name": "build",
+          "exit_code": 0
+        },
+        {
+          "name": "source_freshness",
+          "exit_code": 0
+        },
+        {
+          "name": "golden",
+          "exit_code": 0
+        },
+        {
+          "name": "sqlfluff",
+          "exit_code": 0
+        },
+        {
+          "name": "freshness_three_stale_tables",
+          "exit_code": 0
+        }
+      ],
+      "incomplete_runs_count_as_green": [
+        [
+          7,
+          true
+        ]
+      ],
+      "database_removed": true
+    },
+    "terraform": {
+      "fmt": "PASS",
+      "validate": "PASS",
+      "plan": "PASS",
+      "add": 13,
+      "change": 0,
+      "destroy": 0,
+      "provider": "hashicorp/aws 6.68.0",
+      "applied": false
+    }
+  },
+  "live_readonly": {
+    "raw": {
+      "customers": {
+        "rows": 2024,
+        "max_rowver": 272008
+      },
+      "products": {
+        "rows": 60,
+        "max_rowver": 22074
+      },
+      "orders": {
+        "rows": 20131,
+        "max_rowver": 272222
+      },
+      "order_items": {
+        "rows": 60453,
+        "max_rowver": 272219
+      }
+    },
+    "recent_ingest": [
+      {
+        "run_id": "scheduled__2026-10-11T18:00:00+00:00",
+        "table_name": "orders",
+        "row_count": 62,
+        "loaded_at": "2026-10-12 02:04:05.772454+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-11T18:00:00+00:00",
+        "table_name": "customers",
+        "row_count": 8,
+        "loaded_at": "2026-10-12 02:04:05.737785+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-11T18:00:00+00:00",
+        "table_name": "order_items",
+        "row_count": 71,
+        "loaded_at": "2026-10-12 02:04:05.738431+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-11T18:00:00+00:00",
+        "table_name": "products",
+        "row_count": 0,
+        "loaded_at": "2026-10-12 02:04:05.763335+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-10T18:00:00+00:00",
+        "table_name": "orders",
+        "row_count": 62,
+        "loaded_at": "2026-10-11 05:07:11.562215+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-10T18:00:00+00:00",
+        "table_name": "customers",
+        "row_count": 8,
+        "loaded_at": "2026-10-11 05:07:11.587741+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-10T18:00:00+00:00",
+        "table_name": "order_items",
+        "row_count": 81,
+        "loaded_at": "2026-10-11 05:07:11.562215+00:00"
+      },
+      {
+        "run_id": "scheduled__2026-10-10T18:00:00+00:00",
+        "table_name": "products",
+        "row_count": 0,
+        "loaded_at": "2026-10-11 05:07:11.592425+00:00"
+      }
+    ],
+    "daily_summary": {
+      "error": "relation \"recon.v_daily_summary\" does not exist\nLINE 1: SELECT * FROM recon.v_daily_summary ORDER BY run_date DESC L...\n                      ^"
+    },
+    "green_streak": {
+      "error": "relation \"recon.v_green_streak\" does not exist\nLINE 1: SELECT * FROM recon.v_green_streak\n                      ^"
+    },
+    "latest_reports": [
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "category_monthly_revenue",
+        "checked_at": "2026-10-12 02:04:22.254261+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "cumulative_revenue",
+        "checked_at": "2026-10-12 02:04:22.048548+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "customer_ltv",
+        "checked_at": "2026-10-12 02:04:21.996151+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "customer_segments",
+        "checked_at": "2026-10-12 02:04:22.072036+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "daily_revenue",
+        "checked_at": "2026-10-12 02:04:22.181335+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "product_sales",
+        "checked_at": "2026-10-12 02:04:21.978304+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      },
+      {
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "report": "top_products_by_category",
+        "checked_at": "2026-10-12 02:04:22.058491+00:00",
+        "run_date": "2026-10-12",
+        "status": "PASS",
+        "diff_rows": 0,
+        "failed_checks": 0
+      }
+    ],
+    "audit": [
+      {
+        "model_name": "mart_customer_segments",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_top_products_by_category",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_product_sales",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_customer_ltv",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_cumulative_revenue",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_category_monthly_revenue",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      },
+      {
+        "model_name": "mart_daily_revenue",
+        "max": "2026-10-12 02:04:18.162534+00:00",
+        "count": 19
+      }
+    ],
+    "legacy_batches": [
+      {
+        "batch_id": "asset_triggered__2026-10-12T02:04:10.132062+00:00_dDRnyb8I",
+        "finished_at": "2026-10-12 02:04:11.155477+00:00",
+        "stable": true
+      },
+      {
+        "batch_id": "asset_triggered__2026-10-11T05:07:16.118370+00:00_IzM6pg8o",
+        "finished_at": "2026-10-11 05:07:17.127578+00:00",
+        "stable": true
+      },
+      {
+        "batch_id": "manual__aeb1e21c0108",
+        "finished_at": "2026-10-10 16:47:25.730009+00:00",
+        "stable": true
+      }
+    ],
+    "airflow": [
+      {
+        "dag_id": "reconciliation",
+        "run_id": "asset_triggered__2026-10-12T02:04:19.711220+00:00_bg1vI4kJ",
+        "state": "success",
+        "start_date": "2026-10-12 02:04:19.949771+00:00",
+        "end_date": "2026-10-12 02:04:24.044985+00:00"
+      },
+      {
+        "dag_id": "legacy_nightly_batch",
+        "run_id": "asset_triggered__2026-10-12T02:04:10.132062+00:00_dDRnyb8I",
+        "state": "success",
+        "start_date": "2026-10-12 02:04:10.287379+00:00",
+        "end_date": "2026-10-12 02:04:11.369727+00:00"
+      },
+      {
+        "dag_id": "transform_dbt",
+        "run_id": "asset_triggered__2026-10-12T02:04:10.132059+00:00_yl0fsexV",
+        "state": "success",
+        "start_date": "2026-10-12 02:04:10.286015+00:00",
+        "end_date": "2026-10-12 02:04:19.967836+00:00"
+      },
+      {
+        "dag_id": "ingest_legacy",
+        "run_id": "scheduled__2026-10-11T18:00:00+00:00",
+        "state": "success",
+        "start_date": "2026-10-12 02:04:00.150157+00:00",
+        "end_date": "2026-10-12 02:04:10.300272+00:00"
+      },
+      {
+        "dag_id": "reconciliation",
+        "run_id": "asset_triggered__2026-10-11T05:07:27.019024+00:00_UNwx4ZBb",
+        "state": "success",
+        "start_date": "2026-10-11 05:07:27.261605+00:00",
+        "end_date": "2026-10-11 05:07:31.543777+00:00"
+      },
+      {
+        "dag_id": "legacy_nightly_batch",
+        "run_id": "asset_triggered__2026-10-11T05:07:16.118370+00:00_IzM6pg8o",
+        "state": "success",
+        "start_date": "2026-10-11 05:07:16.262417+00:00",
+        "end_date": "2026-10-11 05:07:18.084704+00:00"
+      },
+      {
+        "dag_id": "transform_dbt",
+        "run_id": "asset_triggered__2026-10-11T05:07:16.118367+00:00_ns914fmr",
+        "state": "success",
+        "start_date": "2026-10-11 05:07:16.260822+00:00",
+        "end_date": "2026-10-11 05:07:27.281661+00:00"
+      },
+      {
+        "dag_id": "ingest_legacy",
+        "run_id": "scheduled__2026-10-10T18:00:00+00:00",
+        "state": "success",
+        "start_date": "2026-10-11 05:07:02.151502+00:00",
+        "end_date": "2026-10-11 05:07:16.278703+00:00"
+      },
+      {
+        "dag_id": "reconciliation",
+        "run_id": "asset_triggered__2026-10-10T16:40:07.103749+00:00_P4pm1aUe",
+        "state": "success",
+        "start_date": "2026-10-10 16:40:08.030472+00:00",
+        "end_date": "2026-10-10 16:40:12.428116+00:00"
+      },
+      {
+        "dag_id": "transform_dbt",
+        "run_id": "asset_triggered__2026-10-10T16:39:55.078838+00:00_5mqrhw7I",
+        "state": "success",
+        "start_date": "2026-10-10 16:39:55.601826+00:00",
+        "end_date": "2026-10-10 16:40:08.052502+00:00"
+      },
+      {
+        "dag_id": "legacy_nightly_batch",
+        "run_id": "asset_triggered__2026-10-10T16:39:55.078830+00:00_xs1HVBDW",
+        "state": "success",
+        "start_date": "2026-10-10 16:39:55.600041+00:00",
+        "end_date": "2026-10-10 16:39:56.715388+00:00"
+      },
+      {
+        "dag_id": "ingest_legacy",
+        "run_id": "manual__2026-10-10T16:39:49.790338+00:00",
+        "state": "success",
+        "start_date": "2026-10-10 16:39:50.504833+00:00",
+        "end_date": "2026-10-10 16:39:55.619376+00:00"
+      }
+    ],
+    "metabase": [
+      {
+        "id": 1,
+        "name": "E-commerce Insights",
+        "archived": false
+      },
+      {
+        "id": 2,
+        "name": "Đối soát SQL Server ↔ dbt",
+        "archived": false
+      }
+    ],
+    "source": {
+      "customers": {
+        "rows": 2024,
+        "max_rowver": 272008
+      },
+      "products": {
+        "rows": 60,
+        "max_rowver": 22074
+      },
+      "orders": {
+        "rows": 20131,
+        "max_rowver": 272222
+      },
+      "order_items": {
+        "rows": 60453,
+        "max_rowver": 272219
+      }
+    },
+    "procedures": [
+      "sp_refresh_category_monthly_revenue",
+      "sp_refresh_cumulative_revenue",
+      "sp_refresh_customer_ltv",
+      "sp_refresh_customer_segments",
+      "sp_refresh_daily_revenue",
+      "sp_refresh_product_sales",
+      "sp_refresh_top_products_by_category",
+      "sp_run_nightly_batch"
+    ],
+    "snapshot": {
+      "ok": true,
+      "batch_id": "asset_triggered__2026-10-12T02:04:10.132062+00:00_dDRnyb8I",
+      "reason": "Snapshot khớp"
+    },
+    "comparison_read_only": [
+      {
+        "report": "daily_revenue",
+        "legacy_rows": 185,
+        "new_rows": 185,
+        "status": "PASS",
+        "checks": 12,
+        "diffs": 0
+      },
+      {
+        "report": "customer_ltv",
+        "legacy_rows": 2024,
+        "new_rows": 2024,
+        "status": "PASS",
+        "checks": 18,
+        "diffs": 0
+      },
+      {
+        "report": "customer_segments",
+        "legacy_rows": 2024,
+        "new_rows": 2024,
+        "status": "PASS",
+        "checks": 6,
+        "diffs": 0
+      },
+      {
+        "report": "product_sales",
+        "legacy_rows": 57,
+        "new_rows": 57,
+        "status": "PASS",
+        "checks": 15,
+        "diffs": 0
+      },
+      {
+        "report": "cumulative_revenue",
+        "legacy_rows": 195,
+        "new_rows": 195,
+        "status": "PASS",
+        "checks": 12,
+        "diffs": 0
+      },
+      {
+        "report": "top_products_by_category",
+        "legacy_rows": 15,
+        "new_rows": 15,
+        "status": "PASS",
+        "checks": 8,
+        "diffs": 0
+      },
+      {
+        "report": "category_monthly_revenue",
+        "legacy_rows": 5,
+        "new_rows": 5,
+        "status": "PASS",
+        "checks": 9,
+        "diffs": 0
+      }
+    ]
+  },
+  "history_readonly": {
+    "daily_history": [
+      {
+        "run_date": "2026-10-12",
+        "reports": 7,
+        "pass_count": 7,
+        "diff_rows": "0",
+        "distinct_runs": 1
+      },
+      {
+        "run_date": "2026-10-11",
+        "reports": 7,
+        "pass_count": 7,
+        "diff_rows": "0",
+        "distinct_runs": 1
+      },
+      {
+        "run_date": "2026-10-10",
+        "reports": 7,
+        "pass_count": 7,
+        "diff_rows": "0",
+        "distinct_runs": 1
+      }
+    ],
+    "intentional_failures": [
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "category_monthly_revenue",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "cumulative_revenue",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "customer_ltv",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "customer_segments",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "daily_revenue",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "product_sales",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__519fe8f1c347",
+        "report": "top_products_by_category",
+        "status": "SKIP"
+      },
+      {
+        "run_id": "manual__5cc59730ddfc",
+        "report": "customer_ltv",
+        "status": "FAIL"
+      },
+      {
+        "run_id": "manual__6db55fb8b84e",
+        "report": "cumulative_revenue",
+        "status": "FAIL"
+      },
+      {
+        "run_id": "manual__6db55fb8b84e",
+        "report": "daily_revenue",
+        "status": "FAIL"
+      }
+    ],
+    "current_Q4": [
+      {
+        "id": 41,
+        "name": "Q4 Số ngày xanh liên tiếp",
+        "dataset_query": "{\"lib/type\":\"mbql/query\",\"database\":2,\"stages\":[{\"lib/type\":\"mbql.stage/native\",\"native\":\"WITH days AS (\\n    SELECT run_date, bool_and(status IN ('PASS', 'WARN')) AS green\\n    FROM recon.v_daily_status\\n    GROUP BY run_date\\n),\\nlast_bad AS (\\n    SELECT max(run_date) AS d FROM days WHERE NOT green\\n)\\nSELECT count(*) AS \\\"Số ngày xanh liên tiếp\\\"\\nFROM days, last_bad\\nWHERE days.green AND (last_bad.d IS NULL OR days.run_date > last_bad.d);\"}]}"
+      }
+    ],
+    "metabase_connections": [
+      {
+        "id": 2,
+        "name": "bi_reader",
+        "engine": "postgres"
+      },
+      {
+        "id": 3,
+        "name": "bi_reader",
+        "engine": "postgres"
+      }
+    ]
+  },
+  "minio_readonly": {
+    "objects": 39,
+    "objects_by_table": {
+      "customers": 14,
+      "order_items": 10,
+      "orders": 12,
+      "products": 3
+    },
+    "bytes": 5581662,
+    "versioning": "not enabled"
+  },
+  "reproductions": {
+    "all_reports_skip": {
+      "method": "mock check_snapshot and run_report, invoke real main",
+      "actual_exit_code": 0
+    },
+    "ignore_snapshot": {
+      "method": "real run_report with mocked DB adapters and equal daily_revenue datasets",
+      "snapshot_ok": false,
+      "ignore_snapshot": true,
+      "actual_report_status": "PASS",
+      "persisted_L0": false
+    },
+    "incomplete_runs": {
+      "method": "isolated database; insert one L1 PASS per report split between run A with 4 reports and run B with 3",
+      "actual_reports": 7,
+      "actual_green": true
+    },
+    "partial_freshness": {
+      "method": "isolated database; set products/orders/order_items ingest logs to 10 days old; keep customers current; dbt source freshness",
+      "actual_exit_code": 0,
+      "actual_status": "PASS"
+    }
+  },
+  "production_results_written": false,
+  "audit_database_removed": true
+}
