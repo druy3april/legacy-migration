@@ -34,20 +34,13 @@ DBT_PATH_ARGS = "--target-path /tmp/dbt_target --log-path /tmp/dbt_logs"
     tags=["legacy", "dbt"],
 )
 def transform_dbt():
-    freshness = BashOperator(
-        task_id="dbt_source_freshness",
-        bash_command=(f"cd {DBT_DIR} && {DBT} source freshness --profiles-dir {DBT_DIR} {DBT_PATH_ARGS}"),
-        env=DBT_ENV,
-        append_env=True,
-    )
-    build = BashOperator(
+    BashOperator(
         task_id="dbt_build",
-        bash_command=f"cd {DBT_DIR} && {DBT} build --profiles-dir {DBT_DIR} {DBT_PATH_ARGS}",
-        env=DBT_ENV,
+        bash_command="python -m reconciliation.build",
+        env={**DBT_ENV, "DBT_BIN": DBT, "DBT_PROJECT_DIR": DBT_DIR},
         append_env=True,
-        outlets=[WAREHOUSE_MARTS],  # chỉ phát khi dbt build xanh -> kích hoạt đối soát
+        outlets=[WAREHOUSE_MARTS],
     )
-    freshness >> build
 
 
 transform_dbt()

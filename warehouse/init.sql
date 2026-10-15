@@ -212,6 +212,91 @@ SELECT r.*
 FROM recon.results AS r
 WHERE r.run_id = (SELECT run_id FROM recon.results ORDER BY checked_at DESC LIMIT 1);
 
+-- =====================================================================
+-- Tuần 6: điều kiện cutover (docs/cutover_plan.md)
+-- =====================================================================
+
+-- Completed ingestion snapshots and every dbt attempt are distinct records.
+CREATE TABLE IF NOT EXISTS etl.ingest_batches (
+    run_id TEXT PRIMARY KEY,
+    finished_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fingerprint JSONB NOT NULL,
+    manifest_key TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS etl.dbt_builds (
+    build_id TEXT PRIMARY KEY,
+    ingest_run_id TEXT NOT NULL REFERENCES etl.ingest_batches(run_id),
+    fingerprint JSONB NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at TIMESTAMPTZ,
+    status TEXT NOT NULL CHECK(status IN ('RUNNING','PASS','FAIL','PARTIAL')),
+    invocation_id TEXT,
+    artifact_path TEXT
+);
+ALTER TABLE recon.legacy_batches ADD COLUMN IF NOT EXISTS ingest_run_id TEXT;
+CREATE TABLE IF NOT EXISTS recon.runs (
+    run_id TEXT PRIMARY KEY,
+    requested_reports TEXT[] NOT NULL,
+    snapshot JSONB NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at TIMESTAMPTZ,
+    status TEXT NOT NULL CHECK(status IN ('RUNNING','PASS','WARN','FAIL','SKIP','INCOMPLETE')),
+    eligible_for_cutover BOOLEAN NOT NULL DEFAULT false
+);
+
+-- Only a full-scope run can qualify. Partial invocations never get combined.
+CREATE OR REPLACE VIEW recon.v_daily_summary AS
+WITH latest AS (
+    SELECT DISTINCT ON ((coalesce(finished_at,started_at) AT TIME ZONE 'Asia/Ho_Chi_Minh')::date)
+        *, (coalesce(finished_at,started_at) AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS run_date
+    FROM recon.runs
+    WHERE cardinality(requested_reports)=7 AND requested_reports @> ARRAY['daily_revenue','customer_ltv','customer_segments','product_sales','cumulative_revenue','top_products_by_category','category_monthly_revenue']::text[]
+    ORDER BY (coalesce(finished_at,started_at) AT TIME ZONE 'Asia/Ho_Chi_Minh')::date,
+        coalesce(finished_at,started_at) DESC, run_id DESC
+)
+SELECT
+    l.run_date,
+    count(s.report) AS reports,
+    count(*) FILTER(WHERE s.status='PASS') AS pass_count,
+    count(*) FILTER(WHERE s.status='WARN') AS warn_count,
+    count(*) FILTER(WHERE s.status='SKIP') AS skip_count,
+    count(*) FILTER(WHERE s.status='FAIL') AS fail_count,
+    coalesce(sum(s.diff_rows),0) AS diff_rows,
+    (l.eligible_for_cutover AND l.status='PASS' AND l.finished_at IS NOT NULL
+        AND count(s.report)=7 AND bool_and(s.status='PASS') AND sum(s.diff_rows)=0) AS green
+FROM latest l LEFT JOIN recon.v_report_status s ON s.run_id=l.run_id
+GROUP BY l.run_date,l.eligible_for_cutover,l.status,l.finished_at;
+
+CREATE OR REPLACE VIEW recon.v_green_streak AS
+WITH green_days AS (
+    SELECT run_date,run_date-(row_number() OVER(ORDER BY run_date))::int AS island
+    FROM recon.v_daily_summary WHERE green
+), latest AS (
+    SELECT max(run_date) AS last_run_date FROM recon.v_daily_summary
+)
+SELECT count(g.run_date) AS green_days, min(g.run_date) AS since,
+    max(g.run_date) AS until, max(l.last_run_date) AS last_run_date
+FROM latest l LEFT JOIN green_days g
+ON g.island=(SELECT island FROM green_days WHERE run_date=l.last_run_date)
+AND l.last_run_date BETWEEN (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date-1
+                       AND (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date;
+
+CREATE OR REPLACE VIEW etl.freshness_customers AS
+SELECT coalesce(max(loaded_at),TIMESTAMPTZ '1970-01-01 00:00:00+00') AS loaded_at
+FROM etl.ingest_log WHERE table_name='customers';
+
+CREATE OR REPLACE VIEW etl.freshness_products AS
+SELECT coalesce(max(loaded_at),TIMESTAMPTZ '1970-01-01 00:00:00+00') AS loaded_at
+FROM etl.ingest_log WHERE table_name='products';
+
+CREATE OR REPLACE VIEW etl.freshness_orders AS
+SELECT coalesce(max(loaded_at),TIMESTAMPTZ '1970-01-01 00:00:00+00') AS loaded_at
+FROM etl.ingest_log WHERE table_name='orders';
+
+CREATE OR REPLACE VIEW etl.freshness_order_items AS
+SELECT coalesce(max(loaded_at),TIMESTAMPTZ '1970-01-01 00:00:00+00') AS loaded_at
+FROM etl.ingest_log WHERE table_name='order_items';
+
 -- Metabase: database riêng cho metadata, và một user chỉ-đọc vào warehouse
 DO $$
 BEGIN

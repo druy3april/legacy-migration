@@ -1,0 +1,324 @@
+{
+  "dashboards": [
+    {
+      "id": 2,
+      "name": "Đối soát SQL Server ↔ dbt",
+      "question_ids": [
+        38,
+        39,
+        40,
+        41,
+        42,
+        43
+      ]
+    },
+    {
+      "id": 3,
+      "name": "OLD - Báo cáo SQL Server",
+      "question_ids": [
+        44,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51
+      ]
+    },
+    {
+      "id": 4,
+      "name": "NEW - Báo cáo PostgreSQL",
+      "question_ids": [
+        45,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": 44,
+      "name": "OLD - Daily Revenue",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT *\nFROM dbo.daily_revenue\nORDER BY revenue_date;",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 45,
+      "name": "NEW - Daily Revenue",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT *\nFROM marts.mart_daily_revenue\nORDER BY revenue_date;"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 46,
+      "name": "OLD - Customer LTV",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM dbo.customer_ltv ORDER BY customer_id",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 47,
+      "name": "OLD - Customer segments",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM dbo.customer_segments ORDER BY customer_id"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 48,
+      "name": "OLD - Product sales",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM dbo.product_sales ORDER BY product_id",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 49,
+      "name": "OLD - Cumulative revenue",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM dbo.cumulative_revenue ORDER BY revenue_date"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 50,
+      "name": "OLD - Top products",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM dbo.top_products_by_category ORDER BY category, rank_in_category",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 51,
+      "name": "OLD - Category/month",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM dbo.category_monthly_revenue ORDER BY category"
+          }
+        ],
+        "database": 4
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 4
+    },
+    {
+      "id": 52,
+      "name": "NEW - Customer LTV",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM marts.mart_customer_ltv ORDER BY customer_id",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 53,
+      "name": "NEW - Customer segments",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM marts.mart_customer_segments ORDER BY customer_id"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 54,
+      "name": "NEW - Product sales",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM marts.mart_product_sales ORDER BY product_id",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 55,
+      "name": "NEW - Cumulative revenue",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM marts.mart_cumulative_revenue ORDER BY revenue_date"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 56,
+      "name": "NEW - Top products",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "native": "SELECT * FROM marts.mart_top_products_by_category ORDER BY category, rank_in_category",
+            "lib/type": "mbql.stage/native"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    },
+    {
+      "id": 57,
+      "name": "NEW - Category/month",
+      "dataset_query": {
+        "lib/type": "mbql/query",
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT * FROM marts.mart_category_monthly_revenue ORDER BY category"
+          }
+        ],
+        "database": 2
+      },
+      "display": "table",
+      "visualization_settings": {
+        "table.pivot_column": "refreshed_at",
+        "table.cell_column": "order_count"
+      },
+      "database_id": 2
+    }
+  ]
+}

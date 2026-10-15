@@ -41,9 +41,13 @@ REPORTS = [
 def reconciliation():
     @task
     def check_snapshot() -> dict:
+        from airflow.sdk import get_current_context
+
+        from reconciliation.lifecycle import begin_run
         from reconciliation.run import check_snapshot as _check
 
         snapshot = _check()
+        begin_run(get_current_context()["run_id"], REPORTS, snapshot)
         LOGGER.info("Snapshot: %s", snapshot)
         return snapshot
 
@@ -59,17 +63,15 @@ def reconciliation():
 
     @task
     def evaluate(results: list[dict]) -> None:
-        by_status: dict[str, list[str]] = {}
-        for r in results:
-            by_status.setdefault(r["status"], []).append(r["report"])
-        LOGGER.info("Tổng hợp đối soát: %s", by_status)
-        if "FAIL" in by_status:
-            # Không retry: lệch số liệu không tự hết khi chạy lại -> gửi cảnh báo ngay
-            raise AirflowFailException(
-                f"Đối soát FAIL: {', '.join(by_status['FAIL'])}. Xem recon.results / recon.row_diffs theo run_id này."
-            )
-        if set(by_status) == {"SKIP"}:
-            LOGGER.warning("Toàn bộ báo cáo SKIP vì snapshot lệch: hôm nay chưa được kiểm chứng")
+        from airflow.sdk import get_current_context
+
+        from reconciliation.lifecycle import finish_run
+        from reconciliation.run import check_snapshot as verify_snapshot
+
+        outcome = finish_run(get_current_context()["run_id"], verify_snapshot())
+        LOGGER.info("Reports: %s; run outcome: %s", results, outcome)
+        if not outcome["eligible_for_cutover"]:
+            raise AirflowFailException(f"Run chưa đủ điều kiện nghiệm thu: {outcome['status']}")
 
     snapshot = check_snapshot()
     results = reconcile.partial(snapshot=snapshot).expand(report=REPORTS)

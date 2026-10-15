@@ -34,16 +34,24 @@ Chọn phương án **(b)**.
   nhận).
 - Hòa doanh thu tại ranh giới top 3 chỉ là `WARN` khi measure doanh thu bằng
   nhau và chỉ khác cột sản phẩm do procedure cũ không quy định tie-break.
-- Batch cũ lưu fingerprint trước/sau gồm số dòng và `MAX(rowversion)` của bốn
-  bảng nguồn; chỉ đối chiếu khi batch ổn định và fingerprint khớp raw.
+- Fingerprint bốn bảng gồm số dòng, max rowversion và SHA-256 toàn bộ giá trị
+  đã chuẩn hóa, sắp theo khóa. Batch cũ kiểm tra trước/sau; ingestion và dbt
+  cùng ghi `ingest_run_id`. Đối soát kiểm tra lại fingerprint trước và sau.
+- Chỉ build đầy đủ mới có trạng thái PASS. Build mới hơn bị lỗi hoặc PARTIAL
+  chặn nghiệm thu; không dùng PASS cũ để thay thế.
+- Một run phải đủ L0–L5 cho cả bảy báo cáo, tất cả PASS, cùng snapshot và không
+  có dòng lệch mới đủ điều kiện cutover. Debug không ghi kết quả; SKIP trả lỗi.
+- Đây là phép kiểm tra ổn định trong cửa sổ lab, không phải distributed snapshot.
+  Đóng băng ghi lúc cutover. Nếu nguồn ghi liên tục, cần CDC/LSN hoặc snapshot
+  transaction đồng bộ; hash trước/sau không tự tạo snapshot isolation.
 
 ## Hệ quả
 
 - `SKIP` tránh ghi nhận sai khác giả do hai phía tính từ dữ liệu khác thời
   điểm; `SKIP` kéo dài vẫn là **sự cố vận hành**, cần khôi phục ingestion và
   đồng bộ snapshot thay vì bỏ qua điều kiện.
-- Bốn trạng thái được lưu ở `recon.results` và tổng hợp cho dashboard; `FAIL`
-  làm DAG reconciliation thất bại, `WARN` được giữ lại để theo dõi.
+- Trạng thái chi tiết ở `recon.results`; trạng thái toàn run ở `recon.runs`.
+  DAG chỉ xanh khi run đủ điều kiện; WARN vẫn phải điều tra, không tính ngày xanh.
 - Quy tắc ngày UTC được giữ nguyên trong thời gian di chuyển. Đổi sang ngày giờ
   Việt Nam là **thay đổi nghiệp vụ** sau cutover, chỉ thực hiện khi nghiệp vụ
   duyệt; không sửa đồng thời với việc chuyển nền tảng (“làm đúng trước”, quy

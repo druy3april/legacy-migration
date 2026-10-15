@@ -3,11 +3,11 @@
 {{ config(severity = 'error') }}
 
 with previous as (
-    select
+    select distinct on (rc.model_name)
         rc.model_name,
         rc.row_count
     from audit.row_counts as rc
-    where rc.run_at = (select max(latest.run_at) from audit.row_counts as latest)
+    order by rc.model_name asc, rc.run_at desc
 ),
 
 current_counts as (

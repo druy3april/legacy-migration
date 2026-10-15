@@ -218,6 +218,12 @@ Ngày được tính theo `Asia/Ho_Chi_Minh`, khớp với `recon.v_daily_status
 Số liệu lấy từ Q2 (`recon.v_daily_status`), đối chiếu với `diff_rows`; chỉ tính
 ngày xanh khi cả 7 báo cáo PASS và không có dòng lệch.
 
+Quy tắc này được cài thành view `recon.v_daily_summary` (cột `green`) và
+`recon.v_green_streak` (chuỗi ngày xanh liên tiếp, ngày bị bỏ trống làm đứt chuỗi).
+Q4 trên dashboard và lệnh `make readiness` cùng đọc từ hai view này, nên con số
+trên dashboard và điều kiện cutover trong [cutover_plan.md](./cutover_plan.md)
+luôn khớp nhau. `WARN` không được tính là xanh cho đến khi có người duyệt.
+
 | Ngày | PASS | WARN | SKIP | FAIL | Ghi chú |
 |---|---:|---:|---:|---:|---|
 | 2026-10-10 | 7 | 0 | 0 | 0 | `manual__4075773f0066`; `diff_rows=0`; Q4 xanh |
@@ -225,7 +231,8 @@ ngày xanh khi cả 7 báo cáo PASS và không có dòng lệch.
 
 Tính đến 2026-10-11: **2 ngày xanh liên tiếp**; chưa đạt điều kiện cutover
 5 ngày liên tiếp. Tiếp tục để các DAG lịch chạy hằng ngày và bổ sung một dòng
-sau mỗi lần xác nhận kết quả trên Q2/Q4.
+sau mỗi lần xác nhận kết quả trên Q2/Q4, hoặc chạy `make readiness` để in bảng
+10 ngày gần nhất.
 
 ## 10. Hạn chế và hướng mở rộng khi dữ liệu lớn gấp 100 lần
 
@@ -238,3 +245,12 @@ sau mỗi lần xác nhận kết quả trên Q2/Q4.
   chuẩn chung.
 - Snapshot bằng `COUNT` + `MAX(rowversion)` quét toàn bảng. Khi dữ liệu lớn,
   xem xét Change Tracking theo [ADR-0001](./adr/0001-xu-ly-dong-bi-xoa.md).
+
+## Cập nhật điều kiện nghiệm thu (2026-10-14)
+
+`recon.runs` là nguồn xác định một run hoàn chỉnh. `v_daily_summary` chỉ lấy một
+run đủ bảy báo cáo trong mỗi ngày VN; không ghép kết quả nhiều run. Lịch sử cũ
+chưa có header vẫn giữ để điều tra nhưng không được tự chuyển thành ngày xanh.
+Freshness kiểm tra riêng từng bảng. `--ignore-snapshot` chỉ in debug và trả mã 2,
+không ghi bảng kết quả. WARN/SKIP/INCOMPLETE không tính ngày xanh. Tài liệu lịch sử
+về fingerprint count/max được thay thế bằng ADR-0004 cập nhật.

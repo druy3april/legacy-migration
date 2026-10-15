@@ -20,8 +20,14 @@ class LegacyBatchUnstable(RuntimeError):
 
 
 def run_legacy_batch(batch_id: str) -> dict:
+    from reconciliation.ingest_batch import latest_ingestion
+
+    with get_pg_connection() as pg:
+        ingest = latest_ingestion(pg)
     with get_legacy_connection() as mssql:
         before = legacy_fingerprint(mssql)
+        if before != ingest["fingerprint"]:
+            raise LegacyBatchUnstable("Nguồn khác batch ingestion; cần chạy lại ingestion")
         started_at = datetime.now(UTC)
         cur = mssql.cursor()
         cur.execute("EXEC dbo.sp_run_nightly_batch")
@@ -30,7 +36,7 @@ def run_legacy_batch(batch_id: str) -> dict:
         after = legacy_fingerprint(mssql)
 
     with get_pg_connection() as pg:
-        stable = record_legacy_batch(pg, batch_id, started_at, finished_at, before, after)
+        stable = record_legacy_batch(pg, batch_id, started_at, finished_at, before, after, ingest["run_id"])
 
     if not stable:
         raise LegacyBatchUnstable(f"Nguồn thay đổi trong lúc chạy batch {batch_id}: trước={before}, sau={after}")

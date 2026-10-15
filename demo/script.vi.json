@@ -1,0 +1,146 @@
+[
+  {
+    "start": 0,
+    "duration": 15,
+    "title": "Giữ đúng số liệu khi đổi nền tảng",
+    "hero": "7 stored procedure → 12 model dbt",
+    "points": [
+      "SQL Server 2022 → MinIO → PostgreSQL",
+      "Airflow điều phối • Metabase trình bày",
+      "Portfolio data engineering · kiểm chứng ngày 15/10/2026"
+    ],
+    "note": "Mục tiêu: chuyển báo cáo mà không làm sai logic nghiệp vụ."
+  },
+  {
+    "start": 15,
+    "duration": 15,
+    "title": "Từ job đêm đến pipeline có kiểm thử",
+    "hero": "7 báo cáo nghiệp vụ",
+    "points": [
+      "Doanh thu ngày, LTV và phân khúc khách hàng",
+      "Doanh số, lũy kế, top sản phẩm và pivot tháng",
+      "Bảo toàn quy tắc trạng thái đơn, NULL, ngày UTC và ngưỡng tiền"
+    ],
+    "note": "Viết lại logic khó: CURSOR, WHILE, MERGE, bảng tạm và SQL động."
+  },
+  {
+    "start": 30,
+    "duration": 15,
+    "title": "Một nguồn, hai hệ báo cáo",
+    "hero": "SQL Server → MinIO → raw → dbt → marts",
+    "points": [
+      "rowversion → tải thay đổi và phát hiện xóa",
+      "raw upsert + tombstone; snapshot Parquet có manifest",
+      "Batch cũ và dbt cùng gắn ingestion ID để đối soát"
+    ],
+    "note": "PostgreSQL phục vụ lab; Terraform mô tả phương án đưa lên AWS."
+  },
+  {
+    "start": 45,
+    "duration": 15,
+    "title": "Tải lại an toàn, không nhân đôi",
+    "hero": "MIN_ACTIVE_ROWVERSION() − 1",
+    "points": [
+      "Chỉ nâng watermark cùng transaction nạp raw",
+      "Kiểm tra tên, kiểu, độ dài và precision/scale của schema",
+      "Quét khóa để đánh dấu DELETE; chặn tỷ lệ xóa bất thường"
+    ],
+    "note": "Cận rowversion giới hạn khoảng tải; nó không tự tạo snapshot transaction."
+  },
+  {
+    "start": 60,
+    "duration": 15,
+    "title": "SQL theo tập hợp, có lineage",
+    "hero": "12 model + 49 dbt test",
+    "points": [
+      "CURSOR → CASE WHEN; WHILE → date spine + window",
+      "Bảng tạm → CTE/intermediate; PIVOT → Jinja",
+      "Freshness riêng từng bảng; full build gắn batch đầu vào"
+    ],
+    "note": "Full build PASS mới đủ điều kiện; partial build được lưu riêng để debug."
+  },
+  {
+    "start": 75,
+    "duration": 15,
+    "title": "Kiểm tra từ tổng đến từng khóa",
+    "hero": "7/7 PASS · 0 dòng lệch",
+    "points": [
+      "L0: cùng trạng thái dữ liệu và cùng batch",
+      "L1–L3: số dòng, tổng hợp và phân bố nhóm",
+      "L4–L5: từng khóa và checksum sau chuẩn hóa"
+    ],
+    "note": "Kết quả đọc thực tế từ các question OLD/NEW; dữ liệu kiểm tra là dữ liệu lab."
+  },
+  {
+    "start": 90,
+    "duration": 15,
+    "title": "Chứng minh cả đường thành công và lỗi",
+    "hero": "44 kiểm thử Python/SQL + golden fixture",
+    "points": [
+      "Retry không tạo trùng; nguồn đổi → SKIP và exit khác 0",
+      "Debug không ghi PASS; partial build không kế thừa PASS cũ",
+      "15 golden assertions kiểm tra cả giá trị pivot và NULL"
+    ],
+    "note": "Bộ CI local đã qua Ruff, SQLFluff, dbt compile/build và freshness."
+  },
+  {
+    "start": 105,
+    "duration": 15,
+    "title": "Snapshot phát lại được cả tombstone",
+    "hero": "RESTORE PASS × 2",
+    "points": [
+      "Manifest định danh nội dung bằng SHA-256",
+      "Khôi phục vào database restore_* riêng",
+      "Chạy lại cùng manifest không nhân đôi dữ liệu"
+    ],
+    "note": "Không hạ watermark để giả lập phục hồi lịch sử; raw và metadata có backup riêng."
+  },
+  {
+    "start": 120,
+    "duration": 15,
+    "title": "OLD và NEW đều đọc bằng tài khoản BI",
+    "hero": "14 question · 2 dashboard",
+    "points": [
+      "OLD: SQL Server • NEW: PostgreSQL",
+      "Đã thử chạy 14 SELECT và so đủ 7 cặp báo cáo",
+      "Sửa quyền pivot sau DROP/CREATE để dashboard không hỏng sau batch"
+    ],
+    "note": "Question và dashboard được xuất định nghĩa vào repository để tái dựng."
+  },
+  {
+    "start": 135,
+    "duration": 15,
+    "title": "Đủ bằng chứng rồi mới Go",
+    "hero": "Hiện tại: 1/5 ngày xanh",
+    "points": [
+      "Một run đủ 7 báo cáo và đủ check mới được tính xanh",
+      "Ngày lịch phải liên tiếp; WARN/SKIP không tính",
+      "Đã có quy trình và diễn tập routing OLD → NEW → OLD"
+    ],
+    "note": "Chưa tuyên bố cutover thật; cần đủ 5 ngày và xác nhận CI remote."
+  },
+  {
+    "start": 150,
+    "duration": 15,
+    "title": "Tái lập được và ghi rõ giới hạn",
+    "hero": "Terraform: 13 add · 0 change · 0 destroy",
+    "points": [
+      "Chỉ validate/plan; không tạo tài nguyên AWS",
+      "Workflow có Ruff, dbt, golden, SQLFluff và Terraform",
+      "Chi phí có region, giả định dung lượng và thời gian xử lý"
+    ],
+    "note": "Local PASS khác với CI GitHub; trạng thái remote được ghi riêng trong bằng chứng."
+  },
+  {
+    "start": 165,
+    "duration": 15,
+    "title": "Di chuyển dữ liệu là bài toán vận hành",
+    "hero": "Đúng logic • có kiểm thử • phục hồi được",
+    "points": [
+      "7 procedure → 12 model dbt",
+      "7/7 báo cáo khớp; replay cả dòng đã xóa",
+      "Tiếp tục lịch 01:00 để tích lũy đủ 5 ngày thật"
+    ],
+    "note": "Source, ADR, migration notes, CI và evidence đi cùng dự án. Không dựng số liệu nghiệm thu."
+  }
+]

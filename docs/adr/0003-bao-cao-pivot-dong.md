@@ -39,3 +39,15 @@ có đơn ngoài các status này có thể tồn tại như một cột với g
   phân biệt hai trạng thái.
 - Bằng chứng đối chiếu hiện tại nằm tại
   [`../evidence/dbt-sqlserver-reconciliation.md`](../evidence/dbt-sqlserver-reconciliation.md).
+
+## Nguồn không còn đơn hàng
+
+Procedure được sửa để xóa bảng pivot cũ và tạo bảng rỗng chỉ có `category`.
+Trước đây `RETURN` sớm giữ số liệu hôm trước. Đây là sửa lỗi baseline cần ghi rõ
+trong migration notes; không che giấu sai khác bằng cách nới ngưỡng đối soát.
+
+## Quyền đọc BI sau khi tạo lại bảng
+
+Procedure khôi phục SELECT cho user bi_legacy_reader nếu user đã có trong DB.
+Kiểm thử tích hợp kiểm tra cả pivot có dữ liệu và pivot rỗng; user không được
+cấp quyền đọc bảng nguồn orders. Không cần cấp lại GRANT bằng tay mỗi đêm.

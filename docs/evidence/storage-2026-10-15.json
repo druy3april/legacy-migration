@@ -1,0 +1,7 @@
+{
+  "bucket": "datalake",
+  "objects": 58,
+  "bytes": 11105692,
+  "manifest_count": 5,
+  "note": "current lab storage; no retention deletion was performed"
+}

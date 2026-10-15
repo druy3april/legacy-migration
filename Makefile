@@ -1,10 +1,11 @@
 -include .env
 export POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT
+PYTHON = .venv/bin/python
 
 COMPOSE = docker compose
 SQLCMD  = /opt/mssql-tools18/bin/sqlcmd
 
-.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase lint ci-local readiness
+.PHONY: help env up down reset ps logs sql data batch check wh wh-sql minio extract-full load-customers ingest simulate ingest-all airflow airflow-logs airflow-pass dag-check dag-test dbt-debug dbt-build dbt-docs dbt-airflow test legacy-batch recon recon-airflow metabase lint ci-local readiness tf-init tf-fmt tf-validate tf-plan
 
 help:
 	@echo "Legacy migration - cac lenh Make"
@@ -53,6 +54,18 @@ help:
 	@echo "  make recon-airflow   Trigger DAG reconciliation"
 	@echo "  make metabase        Khoi dong Metabase (http://localhost:$${METABASE_PORT:-3000})"
 	@echo "  SQL va cau hinh dashboard: metabase/questions/ va metabase/dashboard.json"
+	@echo ""
+	@echo "Tuan 6 - CI, Terraform, cutover:"
+	@echo "  make lint            Ruff + SQLFluff (can Postgres dang chay: make wh)"
+	@echo "  make ci-local        Database test rieng + lint/test/dbt/golden + Terraform"
+	@echo "  make readiness       Kiem tra du CUTOVER_GREEN_DAYS ngay doi soat xanh lien tiep"
+	@echo "  make audit           Thu thap bang chung van hanh (chi doc database)"
+	@echo "  make reports         Link chung OLD/NEW http://localhost:3001"
+	@echo "  make rehearse        Dien tap HTTP route tren config tam"
+	@echo "  make cutover         Chuyen NEW khi du dieu kien; make rollback de ve OLD"
+	@echo "  make tf-fmt          Dinh dang lai code Terraform"
+	@echo "  make tf-validate     terraform fmt -check + validate"
+	@echo "  make tf-plan         terraform plan voi khoa gia (khong can tai khoan AWS)"
 
 env:
 	@test -f .env || (cp .env.example .env && echo "Da tao .env")
@@ -77,7 +90,7 @@ reset:
 	$(COMPOSE) down -v
 
 data:
-	python scripts/generate_data.py
+	$(PYTHON) scripts/generate_data.py
 
 batch:
 	$(COMPOSE) exec -T sqlserver bash -c '$(SQLCMD) -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -d LegacyRetail -b -Q "EXEC dbo.sp_run_nightly_batch"'
@@ -94,26 +107,26 @@ wh-sql:
 
 minio:
 	$(COMPOSE) up -d minio
-	python scripts/init_minio.py
+	$(PYTHON) scripts/init_minio.py
 
 extract-full:
-	python scripts/extract_full.py
+	$(PYTHON) scripts/extract_full.py
 
 load-customers:
-	python scripts/load_to_postgres.py
+	$(PYTHON) scripts/load_to_postgres.py
 
 TABLE ?= customers
 
 ingest:
-	python scripts/ingest_incremental.py $(TABLE)
+	PYTHONPATH=scripts:. $(PYTHON) scripts/ingest_incremental.py $(TABLE)
 
 ARGS ?=
 
 simulate:
-	python scripts/simulate_changes.py $(ARGS)
+	$(PYTHON) scripts/simulate_changes.py $(ARGS)
 
 ingest-all:
-	python scripts/ingest_incremental.py all
+	PYTHONPATH=scripts:. $(PYTHON) scripts/ingest_incremental.py all
 
 airflow:
 	$(COMPOSE) up -d --build airflow
@@ -139,14 +152,14 @@ dbt-debug:
 	$(DBT_LOCAL) debug --profiles-dir .
 
 dbt-build:
-	$(DBT_LOCAL) build --profiles-dir . $(if $(SELECT),-s $(SELECT),)
+	PYTHONPATH=scripts:. $(PYTHON) -m reconciliation.build $(if $(SELECT),--select "$(SELECT)",)
 
 dbt-docs:
 	$(DBT_LOCAL) docs generate --profiles-dir .
 	$(DBT_LOCAL) docs serve --profiles-dir . --port 8081
 
 dbt-airflow:
-	$(DBT_IN_AIRFLOW) build
+	$(COMPOSE) exec -e DBT_BIN=/home/airflow/dbt-venv/bin/dbt -e DBT_PROJECT_DIR=/opt/airflow/dbt_project airflow python -m reconciliation.build
 
 test:
 	.venv/bin/python -m unittest discover -s tests -v
@@ -173,3 +186,52 @@ lint:                    ## lint Python + SQL (SQLFluff cần Postgres đang ch�
 	.venv/bin/ruff check .
 	.venv/bin/ruff format --check .
 	.venv/bin/sqlfluff lint dbt_project/models dbt_project/tests
+
+ci-local:   ## database test cô lập + cùng các kiểm tra như CI
+	PYTHONPATH=scripts:. $(PYTHON) scripts/ci_local.py
+	$(MAKE) tf-validate tf-plan
+	@echo "ci-local: tất cả các bước đều xanh"
+
+readiness:               ## exit 0 khi đủ điều kiện cutover (docs/cutover_plan.md)
+	$(RECON).readiness
+
+# ---- Terraform (chỉ plan, không apply) ----
+TF = terraform -chdir=terraform
+
+tf-init:
+	@command -v terraform >/dev/null || { echo "Chưa cài terraform, xem terraform/README.md"; exit 1; }
+	$(TF) init -input=false
+
+tf-fmt:
+	$(TF) fmt -recursive
+
+tf-validate: tf-init
+	$(TF) fmt -check -recursive
+	$(TF) validate
+
+tf-plan: tf-init
+	$(TF) plan -input=false -lock=false
+
+.PHONY: restore-raw integration-test
+
+integration-test:
+	PYTHONPATH=scripts:. $(PYTHON) scripts/integration_lab.py
+
+# MANIFEST=manifests/<sha256>.json RESTORE_DB=restore_lab
+restore-raw:
+	@test -n "$(MANIFEST)" && test -n "$(RESTORE_DB)"
+	PYTHONPATH=scripts:. $(PYTHON) scripts/archive_raw.py "$(MANIFEST)" --database "$(RESTORE_DB)"
+
+.PHONY: reports reports-status cutover rollback rehearse audit
+reports:
+	$(COMPOSE) up -d reports
+reports-status:
+	$(PYTHON) scripts/report_portal.py status
+cutover:
+	PYTHONPATH=scripts:. $(PYTHON) scripts/report_portal.py new
+rollback:
+	$(PYTHON) scripts/report_portal.py old
+rehearse:
+	$(PYTHON) scripts/report_portal.py rehearse
+audit:
+	PYTHONPATH=scripts:. $(PYTHON) scripts/collect_evidence.py

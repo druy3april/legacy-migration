@@ -99,6 +99,22 @@ services:
       - ./reconciliation:/opt/airflow/libs/reconciliation:ro,z
       - airflow_logs:/opt/airflow/logs
 
+  reports:
+    image: legacy-migration-airflow
+    entrypoint: ["python"]
+    container_name: legacy-reports
+    command: ["/app/report_portal.py", "serve", "--host", "0.0.0.0", "--port", "3001", "--config", "/app/metabase/active-dashboard.json"]
+    environment:
+      METABASE_PUBLIC_URL: http://localhost:${METABASE_PORT:-3000}
+    ports:
+      - "127.0.0.1:${REPORTS_PORT:-3001}:3001"
+    volumes:
+      - ./scripts/report_portal.py:/app/report_portal.py:ro,z
+      - ./metabase:/app/metabase:ro,z
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
   metabase:
     image: metabase/metabase:v0.58.35
     container_name: legacy-metabase

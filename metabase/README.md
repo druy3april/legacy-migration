@@ -23,3 +23,20 @@ nguyên trong repository:
 `bi_reader` được tạo và chỉ được cấp quyền đọc trên schema `recon` và `marts`
 trong [`warehouse/init.sql`](../warehouse/init.sql). Các file SQL dùng alias
 cột tiếng Việt vì cấu hình biểu đồ hiện tại tham chiếu các tên đó.
+
+## Dashboard nghiệp vụ và link chuyển nguồn
+
+`business-dashboards.json` lưu SQL, cách hiển thị và ID tham chiếu của 14 question
+và hai dashboard OLD/NEW đã kiểm tra; không chứa thông tin đăng nhập. Khi dựng
+lại trên instance khác, tạo lại kết nối rồi thay database/question/dashboard ID.
+Cập nhật `active-dashboard.json` theo ID mới trước khi dùng đường dẫn chung.
+
+- OLD: http://localhost:3000/dashboard/3
+- NEW: http://localhost:3000/dashboard/4
+- Link chung: `make reports`, mở http://localhost:3001.
+- `make cutover`: kiểm tra 5 ngày xanh, latest run và snapshot rồi mới đổi NEW.
+- `make rollback`: đổi OLD không cần kết nối DB.
+- `make rehearse`: thử HTTP OLD → NEW → OLD bằng cấu hình tạm; không đổi link chung.
+
+Q4 trên Metabase đã được đồng bộ với `questions/Q4_consecutive_green_days.sql`.
+Chạy `make audit` để đối chiếu bản lưu thực tế với warehouse trước bàn giao.

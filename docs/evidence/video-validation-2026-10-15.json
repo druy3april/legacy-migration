@@ -1,0 +1,22 @@
+{
+  "tool": "HyperFrames 0.8.162",
+  "duration_seconds": 180,
+  "width": 1280,
+  "height": 720,
+  "fps": 24,
+  "codec": "h264",
+  "bytes": 4477788,
+  "sha256": "3647282eff2f37807fc8eea09030b4c2d0adee8c3e32fdfe70d72ceccac22042",
+  "runtime_errors": 0,
+  "layout_errors": 0,
+  "motion_errors": 0,
+  "contrast_passed": 37,
+  "visual_frames_reviewed_seconds": [
+    7,
+    90,
+    146
+  ],
+  "crossfade_overlap": "intentional; marked in composition",
+  "audio": false,
+  "legacy_animation_map": "old plugin script not compatible with current producer; current HyperFrames check motion audit passed"
+}

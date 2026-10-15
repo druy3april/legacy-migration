@@ -119,3 +119,9 @@ asset raw để `legacy_nightly_batch` và `transform_dbt` chạy; DAG
 trigger trực tiếp reconciliation và không chạy `simulate` giữa ingestion với
 hai nhánh batch/dbt. Kết quả bằng chứng ban đầu đã lưu tại
 [`evidence/dbt-sqlserver-reconciliation.md`](./evidence/dbt-sqlserver-reconciliation.md).
+
+## Sửa lỗi baseline pivot rỗng (2026-10-14)
+
+Khi không còn order, procedure cũ RETURN trước khi xóa bảng pivot, giữ số hôm
+trước. Sửa để tạo bảng rỗng chỉ có category. Ca này được kiểm tra trong
+`scripts/integration_lab.py`; không coi số tồn dư cũ là yêu cầu nghiệp vụ.

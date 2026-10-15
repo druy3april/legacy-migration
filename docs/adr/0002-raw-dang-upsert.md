@@ -1,37 +1,36 @@
-# ADR-0002: Raw dùng upsert thay vì append
+# ADR-0002: Raw upsert và snapshot bất biến để phục hồi
 
-- Trạng thái: Đã chấp nhận
-- Ngày: 2026-10-09
+- Trạng thái: Đã chấp nhận cho lab
+- Cập nhật: 2026-10-14
 
 ## Quyết định
 
-Raw biểu diễn trạng thái hiện tại của từng khóa nguồn nên dùng upsert: khóa mới
-được thêm, khóa đã có chỉ được cập nhật khi `row_ver` mới hơn. Chạy lại một
-batch không tạo bản sao và không ghi đè phiên bản mới bằng dữ liệu cũ. Khi một
-bản ghi có khóa đó xuất hiện lại trong nguồn, upsert xóa `_deleted_at` để đánh
-dấu bản ghi là hiện hành.
+Raw giữ trạng thái hiện tại bằng upsert theo khóa và rowversion; staging lọc
+`_deleted_at IS NULL`. Đây là khác biệt có chủ đích so với đề xuất raw append
+trong hướng dẫn gốc. Không cần viết lại 12 model chỉ để đổi cách lưu raw.
 
-Lịch sử các batch được lưu thành file Parquet bất biến trên MinIO và được tham
-chiếu trong `etl.ingest_log`; bảng raw không phải kho lịch sử phiên bản.
+Incremental dùng key `raw/<bảng>/incremental/rv_<from>_<to>_<sha256>.parquet`.
+Ghi object với `IfNoneMatch="*"`; retry chỉ chấp nhận object có nội dung giống
+hệt. Cùng khoảng watermark nhưng bytes khác phải thành key khác, không ghi đè.
 
-## Đường dẫn file
+Sau khi đủ bốn bảng và source/raw khớp, lưu snapshot đầy đủ của raw, bao gồm
+`_loaded_at`, `_deleted_at`, theo key nội dung và một manifest có SHA-256.
+`etl.ingest_batches.manifest_key` trỏ tới manifest. Snapshot đã phát hành không
+bị thay đổi bởi code này; tài khoản quản trị vẫn có quyền xóa object. Production
+cần thêm versioning/Object Lock, retention và sao lưu khác tài khoản.
 
-Incremental Parquet dùng key `raw/{table}/incremental/rv_{from}_{to}.parquet`,
-trong đó hai cận rowversion được zero-pad để sắp xếp từ điển cũng theo thứ tự
-thời gian. Cùng một khoảng watermark luôn tạo cùng key, nên retry hoặc backfill
-ghi đè đúng đối tượng, không tạo nhiều file giống nhau; `etl.ingest_log` giữ
-run ID và khoảng rowversion cho từng lần thử.
+## Phục hồi
 
-Không dùng `dt=.../run_<id>` vì thời điểm chạy hoặc run ID khác nhau khi retry
-cùng một khoảng dữ liệu, làm mất tính idempotent ở tầng object. Partition ngày
-cũng không diễn tả chính xác ranh giới incremental dựa trên `rowversion`.
+`make restore-raw MANIFEST=manifests/<sha256>.json RESTORE_DB=restore_lab`
+khôi phục vào database mới, kiểm tra hash file, schema, số dòng, dữ liệu active
+và toàn bộ tombstone. Chạy lại cùng manifest không nhân bản. Snapshot khác phải
+vào database khác. Watermark của pipeline đang chạy không bị thay đổi.
 
-## Tải lại (backfill)
+Phục hồi snapshot khác với tải lại nguồn hiện tại: hạ watermark không tạo được
+lịch sử đã mất ở SQL Server. Khi nối nguồn vào database phục hồi cần quy trình
+rebaseline riêng; không dùng bộ đếm rowversion giữa hai database SQL Server.
 
-- Ưu tiên phát lại file Parquet đã lưu trên MinIO bằng loader tương ứng với schema
-  đích; kiểm tra `row_ver` trước khi upsert.
-- Nếu cần trích xuất lại từ nguồn, hạ `etl.watermarks.last_rowversion` cho bảng
-  cần nạp rồi chạy incremental. Cách này chỉ lấy các dòng còn tồn tại ở nguồn;
-  nó không khôi phục được dòng đã DELETE. Việc xử lý DELETE thuộc ADR-0001.
-- Hạ watermark có thể tạo lại batch cùng khoảng `rowversion`; raw upsert vẫn
-  chống trùng, nhưng `etl.ingest_log` sẽ ghi thêm lịch sử lần chạy lại.
+## Đánh đổi
+
+Mỗi batch lưu full snapshot phù hợp lab ~83 nghìn dòng; lịch sử tốn dung lượng.
+Quy mô lớn chuyển CDC/Change Tracking + lịch sử thay đổi và checkpoint định kỳ.

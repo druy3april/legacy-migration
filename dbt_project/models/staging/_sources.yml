@@ -13,8 +13,22 @@ sources:
   - name: etl
     schema: etl
     tables:
-      - name: ingest_log
-        description: "Mỗi lần chạy ingestion ghi một dòng cho mỗi bảng, kể cả khi 0 dòng"
+      - name: freshness_customers
+        loaded_at_field: loaded_at
+        freshness:
+          warn_after: {count: 26, period: hour}
+          error_after: {count: 50, period: hour}
+      - name: freshness_products
+        loaded_at_field: loaded_at
+        freshness:
+          warn_after: {count: 26, period: hour}
+          error_after: {count: 50, period: hour}
+      - name: freshness_orders
+        loaded_at_field: loaded_at
+        freshness:
+          warn_after: {count: 26, period: hour}
+          error_after: {count: 50, period: hour}
+      - name: freshness_order_items
         loaded_at_field: loaded_at
         freshness:
           warn_after: {count: 26, period: hour}

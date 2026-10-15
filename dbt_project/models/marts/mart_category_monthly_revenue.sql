@@ -9,10 +9,11 @@
     order by 1
 {%- endset -%}
 
-{%- if execute -%}
+{#- Trên database mới (CI, máy mới), dbt compile / docs generate chạy trước khi stg_orders
+    được tạo: khi đó bỏ qua run_query thay vì lỗi. Lúc dbt build, stg_orders luôn có trước. -#}
+{%- set months = [] -%}
+{%- if execute and load_relation(ref('stg_orders')) is not none -%}
     {%- set months = run_query(months_query).columns[0].values() -%}
-{%- else -%}
-    {%- set months = [] -%}
 {%- endif %}
 
 select
